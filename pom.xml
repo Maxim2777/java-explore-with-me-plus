@@ -217,6 +217,21 @@
 				<artifactId>stat-dto</artifactId>
 				<version>0.0.1-SNAPSHOT</version>
 			</dependency>
-		</dependencies>
+
+				<!-- Jackson (JSON) -->
+				<dependency>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+					<version>2.16.0</version>
+				</dependency>
+
+				<!-- Jakarta Validation -->
+				<dependency>
+					<groupId>jakarta.validation</groupId>
+					<artifactId>jakarta.validation-api</artifactId>
+					<version>3.0.2</version>
+				</dependency>
+			</dependencies>
+
 	</dependencyManagement>
 </project>
