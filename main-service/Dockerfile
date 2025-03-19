@@ -1,11 +1,5 @@
-# Используем OpenJDK 21
-FROM openjdk:21-jdk
-
-# Рабочая директория
-WORKDIR /app
-
-# Копируем JAR-файл
-COPY target/main-service.jar main-service.jar
-
-# Запуск
-CMD ["java", "-jar", "main-service.jar"]
+FROM eclipse-temurin:21-jre-jammy
+VOLUME /tmp
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
