@@ -1,13 +1,15 @@
 package ru.practicum.ewm.main.config;
 
 import ru.practicum.ewm.client.StatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class StatClientConfig {
+
     @Bean
-    public StatClient statClient() {
-        return new StatClient("http://localhost:9090");
+    public StatClient statClient(@Value("${stat-server-url}") String statServerUrl) { // Используем существующий ключ
+        return new StatClient(statServerUrl);
     }
 }
