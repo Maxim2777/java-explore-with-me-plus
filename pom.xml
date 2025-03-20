@@ -26,9 +26,7 @@
 	<!-- Добавляем модули проекта -->
 	<modules>
 		<module>main-service</module>
-		<module>stat/stat-server</module>
-		<module>stat/stat-client</module>
-		<module>stat/stat-dto</module>
+		<module>stat</module>
 	</modules>
 
 	<build>

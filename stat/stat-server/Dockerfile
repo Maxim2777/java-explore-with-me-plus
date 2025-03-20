@@ -1,11 +1,5 @@
-# Используем OpenJDK 21
-FROM openjdk:21-jdk
-
-# Рабочая директория внутри контейнера
-WORKDIR /app
-
-# Копируем JAR-файл (после сборки Maven)
-COPY target/stat-server.jar stat-server.jar
-
-# Команда для запуска
-CMD ["java", "-jar", "stat-server.jar"]
+FROM eclipse-temurin:21-jre-jammy
+VOLUME /tmp
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
