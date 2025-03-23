@@ -1,0 +1,32 @@
+package ru.practicum.ewm.main.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "participation_requests")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ParticipationRequest {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private LocalDateTime created;
+
+    @Enumerated(EnumType.STRING)
+    private ParticipationRequestStatus status;
+
+    // Связь с пользователем (инициатор запроса)
+    @Column(name = "requester_id", nullable = false)
+    private Long requesterId;
+
+    // Связь с событием
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
+}
