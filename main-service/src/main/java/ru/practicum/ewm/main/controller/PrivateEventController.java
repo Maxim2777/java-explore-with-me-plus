@@ -1,5 +1,6 @@
 package ru.practicum.ewm.main.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class PrivateEventController {
 
     @PostMapping
     public ResponseEntity<EventFullDto> create(@PathVariable Long userId,
-                                               @RequestBody NewEventDto dto) {
+                                               @RequestBody @Valid NewEventDto dto) {
         return ResponseEntity.status(201).body(eventService.createUserEvent(userId, dto));
     }
 
@@ -37,7 +38,7 @@ public class PrivateEventController {
     @PatchMapping("/{eventId}")
     public ResponseEntity<EventFullDto> update(@PathVariable Long userId,
                                                @PathVariable Long eventId,
-                                               @RequestBody UpdateEventUserRequest dto) {
+                                               @RequestBody @Valid UpdateEventUserRequest dto) {
         return ResponseEntity.ok(eventService.updateUserEvent(userId, eventId, dto));
     }
 }
