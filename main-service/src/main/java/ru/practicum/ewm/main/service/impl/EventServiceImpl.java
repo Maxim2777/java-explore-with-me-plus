@@ -2,8 +2,10 @@ package ru.practicum.ewm.main.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
 import ru.practicum.ewm.client.StatClient;
@@ -131,7 +133,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new IllegalArgumentException("Event not found"));
 
         if (event.getState() != EventState.PUBLISHED) {
-            throw new IllegalStateException("Event is not published");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event is not published");
         }
 
         statClient.sendHit(EndpointHitDto.builder()
@@ -165,7 +167,8 @@ public class EventServiceImpl implements EventService {
 
     // --- ADMIN API ---
 
-    @Override
+
+/*    @Override
     public List<EventFullDto> getEventsByAdmin(List<Long> users, List<String> states, List<Long> categories,
                                                String rangeStart, String rangeEnd, int from, int size) {
         return eventRepository.findAll(PageRequest.of(from / size, size)).stream()
@@ -178,6 +181,40 @@ public class EventServiceImpl implements EventService {
                         categoryService.getById(event.getCategoryId()),
                         userService.getShortById(event.getInitiatorId()),
                         0, getViews(event.getId(), LocalDateTime.now().minusYears(1), LocalDateTime.now())))
+                .collect(Collectors.toList());
+    }*/
+
+    // НЕ УВЕРЕН КАК ТУТ КОРРЕКТНО ДЕЛАТЬ СТАРАЯ ВЕРСИЯ ЗАКОМИЧЕНА ВЫШЕ
+    @Override
+    public List<EventFullDto> getEventsByAdmin(List<Long> users, List<String> states, List<Long> categories,
+                                               String rangeStart, String rangeEnd, int from, int size) {
+
+        // Обработка временного диапазона
+        LocalDateTime start = rangeStart != null
+                ? LocalDateTime.parse(rangeStart.replace(" ", "T"))
+                : LocalDateTime.MIN;
+        LocalDateTime end = rangeEnd != null
+                ? LocalDateTime.parse(rangeEnd.replace(" ", "T"))
+                : LocalDateTime.MAX;
+
+        // Сохраняем effectively final переменные
+        List<Long> finalUsers = (users != null && users.contains(0L)) ? null : users;
+        List<Long> finalCategories = (categories != null && categories.contains(0L)) ? null : categories;
+
+        return eventRepository.findAll(PageRequest.of(from / size, size)).stream()
+                .filter(event ->
+                        (finalUsers == null || finalUsers.contains(event.getInitiatorId())) &&
+                                (states == null || states.contains(event.getState().name())) &&
+                                (finalCategories == null || finalCategories.contains(event.getCategoryId())) &&
+                                (event.getEventDate().isAfter(start) && event.getEventDate().isBefore(end))
+                )
+                .map(event -> EventMapper.toFullDto(
+                        event,
+                        categoryService.getById(event.getCategoryId()),
+                        userService.getShortById(event.getInitiatorId()),
+                        0,
+                        getViews(event.getId(), start, end)
+                ))
                 .collect(Collectors.toList());
     }
 

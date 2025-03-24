@@ -18,8 +18,10 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "TEXT") // добавлено
     private String title;
 
+    @Column(columnDefinition = "TEXT") // добавлено
     private String annotation;
 
     @Column(columnDefinition = "TEXT")
