@@ -1,20 +1,28 @@
+-- Удаление таблиц с учётом зависимостей
+DROP TABLE IF EXISTS compilation_events CASCADE;
+DROP TABLE IF EXISTS compilations CASCADE;
+DROP TABLE IF EXISTS participation_requests CASCADE;
+DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
 -- Таблица пользователей
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(250) NOT NULL,
-    email VARCHAR(254) NOT NULL UNIQUE
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE
 );
 
 -- Таблица категорий (для связей с событиями)
 CREATE TABLE categories (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name TEXT NOT NULL UNIQUE
 );
 
 -- Таблица событий
 CREATE TABLE events (
     id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(120) NOT NULL,
+    title TEXT NOT NULL,
     annotation TEXT NOT NULL,
     description TEXT NOT NULL,
     category_id BIGINT NOT NULL,
@@ -27,14 +35,14 @@ CREATE TABLE events (
     paid BOOLEAN NOT NULL,
     participant_limit INT DEFAULT 0,
     request_moderation BOOLEAN DEFAULT TRUE,
-    state VARCHAR(20) NOT NULL
+    state TEXT NOT NULL
 );
 
 -- Таблица заявок на участие
 CREATE TABLE participation_requests (
     id BIGSERIAL PRIMARY KEY,
     created TIMESTAMP NOT NULL,
-    status VARCHAR(20) NOT NULL,
+    status TEXT NOT NULL,
     requester_id BIGINT NOT NULL,
     event_id BIGINT NOT NULL
 );
@@ -42,7 +50,7 @@ CREATE TABLE participation_requests (
 -- Таблица подборок событий
 CREATE TABLE compilations (
     id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(50) NOT NULL,
+    title TEXT NOT NULL,
     pinned BOOLEAN DEFAULT FALSE
 );
 
