@@ -5,6 +5,7 @@ import ru.practicum.ewm.main.model.Compilation;
 
 public class CompilationMapper {
 
+    // ВОЗМОЖНО СТОИТ УДАЛИТЬ ВЕСЬ CompilationMapper!
     // Оставляем только базовый маппинг (если он вообще ещё используется)
     public static CompilationDto toEmptyDto(Compilation compilation) {
         return CompilationDto.builder()

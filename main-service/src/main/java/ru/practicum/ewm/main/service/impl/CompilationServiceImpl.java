@@ -100,21 +100,37 @@ public class CompilationServiceImpl implements CompilationService {
 
     // Новый метод
     private CompilationDto toDtoWithEvents(Compilation compilation) {
-        Set<EventShortDto> events = compilation.getEvents().stream()
-                .map(event -> EventMapper.toShortDto(
-                        event,
-                        categoryService.getById(event.getCategoryId()),
-                        userService.getShortById(event.getInitiatorId()),
-                        0,
-                        0
-                ))
+        Set<Event> events = compilation.getEvents();
+
+        // Кеш по categoryId
+        Map<Long, CategoryDto> categories = new HashMap<>();
+        // Кеш по userId
+        Map<Long, UserShortDto> users = new HashMap<>();
+
+        Set<EventShortDto> eventDtos = events.stream()
+                .map(event -> {
+                    Long categoryId = event.getCategoryId();
+                    Long userId = event.getInitiatorId();
+
+                    CategoryDto category = categories.computeIfAbsent(
+                            categoryId,
+                            categoryService::getById
+                    );
+
+                    UserShortDto user = users.computeIfAbsent(
+                            userId,
+                            userService::getShortById
+                    );
+
+                    return EventMapper.toShortDto(event, category, user, 0, 0);
+                })
                 .collect(Collectors.toSet());
 
         return CompilationDto.builder()
                 .id(compilation.getId())
                 .title(compilation.getTitle())
                 .pinned(compilation.isPinned())
-                .events(events)
+                .events(eventDtos)
                 .build();
     }
 }
