@@ -1,5 +1,6 @@
 package ru.practicum.ewm.main.service;
 
+import ru.practicum.ewm.main.dto.AdminUserParam;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
 import ru.practicum.ewm.main.dto.UserShortDto;
@@ -10,7 +11,7 @@ public interface UserService {
 
     UserDto createUser(NewUserRequest request);
 
-    List<UserDto> getUsers(List<Long> ids, int from, int size);
+    List<UserDto> getUsers(AdminUserParam param);
 
     void deleteUser(Long userId);
 

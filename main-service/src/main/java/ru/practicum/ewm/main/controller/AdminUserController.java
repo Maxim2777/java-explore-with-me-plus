@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.main.dto.AdminUserParam;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
 import ru.practicum.ewm.main.service.UserService;
@@ -26,15 +27,13 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAll(@RequestParam(required = false) List<Long> ids,
-                                                @RequestParam(defaultValue = "0") int from,
-                                                @RequestParam(defaultValue = "10") int size) {
-        log.info("Getting all users: {}", ids);
-        return ResponseEntity.ok(userService.getUsers(ids, from, size));
+    public ResponseEntity<List<UserDto>> getAll(@ModelAttribute AdminUserParam param) {
+        log.info("Getting all users with params: {}", param);
+        return ResponseEntity.ok(userService.getUsers(param));
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> delete(@PathVariable @Valid Long userId) {
+    public ResponseEntity<Void> delete(@PathVariable Long userId) {
         log.info("Deleting user: {}", userId);
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
