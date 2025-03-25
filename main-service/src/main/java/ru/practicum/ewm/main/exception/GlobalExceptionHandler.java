@@ -1,29 +1,39 @@
 package ru.practicum.ewm.main.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     // Ошибки валидации @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handlerMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
+        return new ApiError("Запрос составлен некорректно", Objects.requireNonNull(e.getFieldError())
+                .getDefaultMessage(), e.getStatusCode().toString(), LocalDateTime.now());
     }
 
     // Нарушения ограничений @NotNull, @PositiveOrZero и др.
@@ -42,14 +52,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    // Общий обработчик (fallback)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleAll(Exception ex) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", "Unexpected error: " + ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
-
     // Отсутствие обязательного параметра запроса ?eventId=
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, String>> handleMissingParam(MissingServletRequestParameterException ex) {
@@ -63,5 +65,31 @@ public class GlobalExceptionHandler {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getReason()); // например: "Event is not published"
         return ResponseEntity.status(ex.getStatusCode()).body(error);
+    }
+
+    // NotFoundException
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handlerNotFoundException(final NotFoundException e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        log.error("Ошибка: 404 NOT_FOUND - {}", stackTrace);
+        return new ApiError("Объект не найден или недоступен", e.getMessage(),
+                HttpStatus.NOT_FOUND.name(), LocalDateTime.now());
+    }
+
+    // Общий обработчик (fallback)
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handlerException(final Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        log.error("Ошибка: 500 INTERNAL_SERVER_ERROR - {}", stackTrace);
+        return new ApiError("Неизвестная ошибка", e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR.name(), LocalDateTime.now());
     }
 }

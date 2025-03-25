@@ -7,20 +7,20 @@ DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- Таблица пользователей
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE
 );
 
 -- Таблица категорий (для связей с событиями)
-CREATE TABLE categories (
+CREATE TABLE IF NOT EXISTS categories (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE
 );
 
 -- Таблица событий
-CREATE TABLE events (
+CREATE TABLE IF NOT EXISTS events (
     id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     annotation TEXT NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE events (
 );
 
 -- Таблица заявок на участие
-CREATE TABLE participation_requests (
+CREATE TABLE IF NOT EXISTS participation_requests (
     id BIGSERIAL PRIMARY KEY,
     created TIMESTAMP NOT NULL,
     status TEXT NOT NULL,
@@ -48,14 +48,14 @@ CREATE TABLE participation_requests (
 );
 
 -- Таблица подборок событий
-CREATE TABLE compilations (
+CREATE TABLE IF NOT EXISTS compilations (
     id BIGSERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     pinned BOOLEAN DEFAULT FALSE
 );
 
 -- Связующая таблица между подборками и событиями
-CREATE TABLE compilation_events (
+CREATE TABLE IF NOT EXISTS compilation_events (
     compilation_id BIGINT NOT NULL,
     event_id BIGINT NOT NULL,
     PRIMARY KEY (compilation_id, event_id),

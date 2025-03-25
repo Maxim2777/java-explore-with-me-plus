@@ -32,6 +32,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Драйвер H2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Spring Actuator -->
 
         <dependency>
