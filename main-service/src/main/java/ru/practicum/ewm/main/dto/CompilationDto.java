@@ -13,5 +13,5 @@ public class CompilationDto {
     private Long id;
     private String title;
     private boolean pinned;
-    private Set<Long> events; // изменено с EventShortDto на Long
+    private Set<EventShortDto> events; // вернуть краткую инфу о событиях
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.main.dto.*;
 import ru.practicum.ewm.main.mapper.CompilationFullMapper;
-import ru.practicum.ewm.main.mapper.CompilationMapper;
+import ru.practicum.ewm.main.mapper.EventMapper;
 import ru.practicum.ewm.main.model.Compilation;
 import ru.practicum.ewm.main.model.Event;
 import ru.practicum.ewm.main.repository.CompilationRepository;
@@ -25,20 +25,23 @@ public class CompilationServiceImpl implements CompilationService {
 
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
-    private final CategoryService categoryService;     // добавлено
-    private final UserService userService;             // добавлено
+    private final CategoryService categoryService;
+    private final UserService userService;
 
     @Override
     @Transactional
     public CompilationDto addCompilation(NewCompilationDto dto) {
         Set<Event> events = dto.getEvents() == null ? Set.of()
                 : new HashSet<>(eventRepository.findAllById(dto.getEvents()));
+
         Compilation compilation = Compilation.builder()
                 .title(dto.getTitle())
                 .pinned(dto.isPinned())
                 .events(events)
                 .build();
-        return CompilationMapper.toDto(compilationRepository.save(compilation));
+
+        compilationRepository.save(compilation);
+        return toDtoWithEvents(compilation);
     }
 
     @Override
@@ -54,7 +57,7 @@ public class CompilationServiceImpl implements CompilationService {
             compilation.setEvents(events);
         }
 
-        return CompilationMapper.toDto(compilation);
+        return toDtoWithEvents(compilation);
     }
 
     @Override
@@ -70,7 +73,7 @@ public class CompilationServiceImpl implements CompilationService {
                 : compilationRepository.findAll(PageRequest.of(from / size, size)).getContent();
 
         return result.stream()
-                .map(CompilationMapper::toDto)
+                .map(this::toDtoWithEvents)
                 .collect(Collectors.toList());
     }
 
@@ -78,7 +81,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto getCompilationById(Long compId) {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NoSuchElementException("Compilation not found"));
-        return CompilationMapper.toDto(compilation);
+        return toDtoWithEvents(compilation);
     }
 
     @Override
@@ -86,7 +89,6 @@ public class CompilationServiceImpl implements CompilationService {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new IllegalArgumentException("Compilation not found"));
 
-        // !!! Временно один и тот же инициатор и категория на все события
         Event example = compilation.getEvents().stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("Compilation has no events"));
 
@@ -94,5 +96,25 @@ public class CompilationServiceImpl implements CompilationService {
         UserShortDto user = userService.getShortById(example.getInitiatorId());
 
         return CompilationFullMapper.toDto(compilation, category, user);
+    }
+
+    // Новый метод
+    private CompilationDto toDtoWithEvents(Compilation compilation) {
+        Set<EventShortDto> events = compilation.getEvents().stream()
+                .map(event -> EventMapper.toShortDto(
+                        event,
+                        categoryService.getById(event.getCategoryId()),
+                        userService.getShortById(event.getInitiatorId()),
+                        0,
+                        0
+                ))
+                .collect(Collectors.toSet());
+
+        return CompilationDto.builder()
+                .id(compilation.getId())
+                .title(compilation.getTitle())
+                .pinned(compilation.isPinned())
+                .events(events)
+                .build();
     }
 }

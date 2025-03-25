@@ -1,5 +1,6 @@
 package ru.practicum.ewm.main.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +17,13 @@ public class AdminCompilationController {
     private final CompilationService compilationService;
 
     @PostMapping
-    public ResponseEntity<CompilationDto> create(@RequestBody NewCompilationDto dto) {
+    public ResponseEntity<CompilationDto> create(@RequestBody @Valid NewCompilationDto dto) {
         return ResponseEntity.status(201).body(compilationService.addCompilation(dto));
     }
 
     @PatchMapping("/{compId}")
     public ResponseEntity<CompilationDto> update(@PathVariable Long compId,
-                                                 @RequestBody UpdateCompilationRequest dto) {
+                                                 @RequestBody @Valid UpdateCompilationRequest dto) {
         return ResponseEntity.ok(compilationService.updateCompilation(compId, dto));
     }
 
