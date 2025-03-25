@@ -34,7 +34,7 @@ public class AdminUserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> delete(@PathVariable Long userId) {
+    public ResponseEntity<Void> delete(@PathVariable @Valid Long userId) {
         log.info("Deleting user: {}", userId);
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();

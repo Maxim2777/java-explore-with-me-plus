@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.main.dto.CategoryDto;
 import ru.practicum.ewm.main.dto.NewCategoryDto;
+import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.CategoryMapper;
 import ru.practicum.ewm.main.model.Category;
 import ru.practicum.ewm.main.repository.CategoryRepository;
@@ -39,7 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryDto updateCategory(Long catId, CategoryDto dto) {
         Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
         category.setName(dto.getName());
         return CategoryMapper.toDto(category);
     }
@@ -47,6 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long catId) {
+        getById(catId);
         categoryRepository.deleteById(catId);
     }
 
@@ -61,7 +63,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getById(Long catId) {
         return categoryRepository.findById(catId)
                 .map(CategoryMapper::toDto)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
     }
 }
 
