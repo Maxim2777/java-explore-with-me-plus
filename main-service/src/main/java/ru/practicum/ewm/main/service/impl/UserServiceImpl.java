@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.main.dto.AdminUserParam;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
 import ru.practicum.ewm.main.dto.UserShortDto;
@@ -31,10 +32,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getUsers(List<Long> ids, int from, int size) {
-        List<User> users = (ids != null && !ids.isEmpty())
-                ? userRepository.findAllByIdIn(ids)
-                : userRepository.findAll(PageRequest.of(from / size, size)).getContent();
+    public List<UserDto> getUsers(AdminUserParam param) {
+        List<User> users = (param.getIds() != null && !param.getIds().isEmpty())
+                ? userRepository.findAllByIdIn(param.getIds())
+                : userRepository.findAll(PageRequest.of(param.getFrom() / param.getSize(), param.getSize())).getContent();
 
         return users.stream()
                 .map(UserMapper::toDto)
