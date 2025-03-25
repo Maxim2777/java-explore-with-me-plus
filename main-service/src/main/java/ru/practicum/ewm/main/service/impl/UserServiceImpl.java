@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
 import ru.practicum.ewm.main.dto.UserShortDto;
+import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.UserMapper;
 import ru.practicum.ewm.main.model.User;
 import ru.practicum.ewm.main.repository.UserRepository;
@@ -43,7 +44,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
+      userRepository.deleteById(userId);
     }
 
     @Override
