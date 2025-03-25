@@ -15,6 +15,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByInitiatorId(Long userId);
 
+    List<Event> findAllByCategoryId(Long catId);
+
 
     //ВОЗМОЖНО НЕ НУЖЕН И СТОИТ УДАЛИТЬ
     @Query("SELECT e FROM Event e " +

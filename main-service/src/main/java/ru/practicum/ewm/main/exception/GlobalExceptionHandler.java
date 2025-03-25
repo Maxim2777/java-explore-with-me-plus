@@ -92,4 +92,17 @@ public class GlobalExceptionHandler {
         return new ApiError("Неизвестная ошибка", e.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.name(), LocalDateTime.now());
     }
+
+    // Дублирование данных (например, попытка создать категорию с уже существующим названием)
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDuplicatedData(final ConflictException e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        log.error("Ошибка: 409 CONFLICT - {}", stackTrace);
+        return new ApiError("Дублирование информации", e.getMessage(),
+                HttpStatus.CONFLICT.name(), LocalDateTime.now());
+    }
 }
