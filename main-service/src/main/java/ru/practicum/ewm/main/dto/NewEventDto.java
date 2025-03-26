@@ -1,7 +1,10 @@
 package ru.practicum.ewm.main.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import jakarta.validation.constraints.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -28,8 +31,8 @@ public class NewEventDto {
     @NotNull(message = "Location is required")
     private LocationDto location;
 
-    @NotBlank(message = "Event date is required")
-    private String eventDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
 
     private boolean paid = false;
 

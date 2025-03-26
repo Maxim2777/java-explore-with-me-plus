@@ -35,7 +35,8 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getUsers(AdminUserParam param) {
         List<User> users = (param.getIds() != null && !param.getIds().isEmpty())
                 ? userRepository.findAllByIdIn(param.getIds())
-                : userRepository.findAll(PageRequest.of(param.getFrom() / param.getSize(), param.getSize())).getContent();
+                : userRepository.findAll(PageRequest.of(param.getFrom() / param.getSize(),
+                param.getSize())).getContent();
 
         return users.stream()
                 .map(UserMapper::toDto)

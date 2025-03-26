@@ -1,23 +1,19 @@
 package ru.practicum.ewm.main.repository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.CrudRepository;
 import ru.practicum.ewm.main.model.Event;
-import ru.practicum.ewm.main.model.EventState;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-public interface EventRepository extends JpaRepository<Event, Long> {
+public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPredicateExecutor<Event> {
 
     List<Event> findAllByInitiatorId(Long userId);
 
     List<Event> findAllByCategoryId(Long catId);
 
-
+/*
     //ВОЗМОЖНО НЕ НУЖЕН И СТОИТ УДАЛИТЬ
     @Query("SELECT e FROM Event e " +
             "WHERE (:users IS NULL OR e.initiatorId IN :users) " +
@@ -29,6 +25,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                   @Param("categories") List<Long> categories,
                                   @Param("start") LocalDateTime start,
                                   @Param("end") LocalDateTime end,
-                                  Pageable pageable);
+                                  Pageable pageable);*/
+
 
 }

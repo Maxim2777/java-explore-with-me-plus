@@ -90,9 +90,9 @@ public class CompilationServiceImpl implements CompilationService {
         Event example = compilation.getEvents().stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("Compilation has no events"));
 
-        CategoryDto category = categoryService.getById(example.getCategoryId());
-        UserShortDto user = userService.getShortById(example.getInitiatorId());
+        CategoryDto category = categoryService.getById(example.getCategory().getId());
+        UserShortDto user = userService.getShortById(example.getInitiator().getId());
 
-        return CompilationFullMapper.toDto(compilation, category, user);
+        return CompilationFullMapper.toDto(compilation);
     }
 }

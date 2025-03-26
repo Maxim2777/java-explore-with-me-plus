@@ -50,9 +50,11 @@ public class Event {
     @Embedded
     private Location location;
 
-    @Column(name = "initiator_id")
-    private Long initiatorId;
+    @ManyToOne
+    @JoinColumn(name = "initiator_id")
+    private User initiator;
 
-    @Column(name = "category_id")
-    private Long categoryId;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

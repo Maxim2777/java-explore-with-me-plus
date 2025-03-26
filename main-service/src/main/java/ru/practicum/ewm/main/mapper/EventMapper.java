@@ -12,15 +12,15 @@ public class EventMapper {
                 .title(dto.getTitle())
                 .annotation(dto.getAnnotation())
                 .description(dto.getDescription())
-                .categoryId(dto.getCategory())
+                .category(new Category(dto.getCategory(), null))
                 .location(new Location(dto.getLocation().getLat(), dto.getLocation().getLon()))
-                .eventDate(LocalDateTime.parse(dto.getEventDate().replace(" ", "T")))
+                .eventDate(dto.getEventDate())
                 .createdOn(LocalDateTime.now())
                 .state(EventState.PENDING)
                 .paid(dto.isPaid())
                 .participantLimit(dto.getParticipantLimit())
                 .requestModeration(dto.isRequestModeration())
-                .initiatorId(initiatorId)
+                .initiator(new User(initiatorId, null, null))
                 .build();
     }
 
@@ -45,15 +45,36 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventShortDto toShortDto(Event event, CategoryDto category, UserShortDto initiator, long confirmed, long views) {
+    public static EventShortDto toShortDto(Event event, long confirmed, long views) {
         return EventShortDto.builder()
                 .id(event.getId())
                 .title(event.getTitle())
                 .annotation(event.getAnnotation())
-                .category(category)
+                .category(new CategoryDto(event.getCategory().getId(), event.getCategory().getName()))
                 .paid(event.isPaid())
                 .eventDate(event.getEventDate())
-                .initiator(initiator)
+                .initiator(new UserShortDto(event.getInitiator().getId(), event.getInitiator().getName()))
+                .confirmedRequests(confirmed)
+                .views(views)
+                .build();
+    }
+
+    public static EventFullDto EntityToFullDto(Event event, long confirmed, long views) {
+        return EventFullDto.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .annotation(event.getAnnotation())
+                .description(event.getDescription())
+                .category(new CategoryDto(event.getCategory().getId(), event.getCategory().getName()))
+                .paid(event.isPaid())
+                .eventDate(event.getEventDate())
+                .createdOn(event.getCreatedOn())
+                .publishedOn(event.getPublishedOn())
+                .participantLimit(event.getParticipantLimit())
+                .requestModeration(event.isRequestModeration())
+                .state(event.getState())
+                .location(new LocationDto(event.getLocation().getLat(), event.getLocation().getLon()))
+                .initiator(new UserShortDto(event.getInitiator().getId(), event.getInitiator().getName()))
                 .confirmedRequests(confirmed)
                 .views(views)
                 .build();

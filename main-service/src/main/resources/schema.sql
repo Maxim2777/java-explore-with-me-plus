@@ -73,9 +73,9 @@ ADD CONSTRAINT fk_participation_event
 FOREIGN KEY (event_id) REFERENCES events(id);
 
 ALTER TABLE events
-ADD CONSTRAINT fk_events_category
+ADD CONSTRAINT fk_category
 FOREIGN KEY (category_id) REFERENCES categories(id);
 
 ALTER TABLE events
-ADD CONSTRAINT fk_events_initiator
+ADD CONSTRAINT fk_initiator
 FOREIGN KEY (initiator_id) REFERENCES users(id);

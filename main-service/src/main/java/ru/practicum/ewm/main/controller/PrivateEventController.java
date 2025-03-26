@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.*;
@@ -9,6 +10,7 @@ import ru.practicum.ewm.main.service.EventService;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users/{userId}/events")
@@ -26,6 +28,7 @@ public class PrivateEventController {
     @PostMapping
     public ResponseEntity<EventFullDto> create(@PathVariable Long userId,
                                                @RequestBody @Valid NewEventDto dto) {
+        log.info("Create new event for {}", dto);
         return ResponseEntity.status(201).body(eventService.createUserEvent(userId, dto));
     }
 

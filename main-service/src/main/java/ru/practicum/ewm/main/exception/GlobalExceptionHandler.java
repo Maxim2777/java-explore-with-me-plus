@@ -24,16 +24,16 @@ import java.util.Objects;
 public class GlobalExceptionHandler {
 
     // Ошибки валидации @Valid
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler({ValidationException.class, MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handlerMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+    public ApiError handlerValidationException(final ValidationException e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
         log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
-        return new ApiError("Запрос составлен некорректно", Objects.requireNonNull(e.getFieldError())
-                .getDefaultMessage(), e.getStatusCode().toString(), LocalDateTime.now());
+        return new ApiError("Запрос составлен некорректно", e.getMessage(),
+                HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
     }
 
     // Нарушения ограничений @NotNull, @PositiveOrZero и др.
@@ -80,19 +80,6 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.name(), LocalDateTime.now());
     }
 
-    // Общий обработчик (fallback)
-    @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handlerException(final Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
-        log.error("Ошибка: 500 INTERNAL_SERVER_ERROR - {}", stackTrace);
-        return new ApiError("Неизвестная ошибка", e.getMessage(),
-                HttpStatus.INTERNAL_SERVER_ERROR.name(), LocalDateTime.now());
-    }
-
     // Дублирование данных (например, попытка создать категорию с уже существующим названием)
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -104,5 +91,18 @@ public class GlobalExceptionHandler {
         log.error("Ошибка: 409 CONFLICT - {}", stackTrace);
         return new ApiError("Дублирование информации", e.getMessage(),
                 HttpStatus.CONFLICT.name(), LocalDateTime.now());
+    }
+
+    // Общий обработчик (fallback)
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handlerException(final Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        log.error("Ошибка: 500 INTERNAL_SERVER_ERROR - {}", stackTrace);
+        return new ApiError("Неизвестная ошибка", e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR.name(), LocalDateTime.now());
     }
 }
