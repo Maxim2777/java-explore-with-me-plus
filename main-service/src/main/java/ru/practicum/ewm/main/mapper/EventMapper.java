@@ -1,10 +1,12 @@
 package ru.practicum.ewm.main.mapper;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.ewm.main.dto.*;
 import ru.practicum.ewm.main.model.*;
 
 import java.time.LocalDateTime;
 
+@Component
 public class EventMapper {
 
     public static Event toEntity(NewEventDto dto, Long initiatorId) {
@@ -55,6 +57,26 @@ public class EventMapper {
                 .eventDate(event.getEventDate())
                 .initiator(initiator)
                 .confirmedRequests(confirmed)
+                .views(views)
+                .build();
+    }
+
+    public EventShortDto toEventShortDtoFromEvent(Event event) {
+        CategoryDto category = new CategoryDto(event.getCategoryId(), "Category Name");
+        UserShortDto initiator = new UserShortDto(event.getInitiatorId(), "User Name");
+        long confirmedRequests = 0L;
+        long views = 0L;
+        Double rating = 4.5;
+
+        return EventShortDto.builder()
+                .id(event.getId())
+                .annotation(event.getAnnotation())
+                .category(category)
+                .confirmedRequests(confirmedRequests)
+                .eventDate(event.getEventDate())
+                .initiator(initiator)
+                .paid(event.isPaid())
+                .title(event.getTitle())
                 .views(views)
                 .build();
     }

@@ -1,6 +1,8 @@
 package ru.practicum.ewm.main.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.CompilationDto;
@@ -13,22 +15,24 @@ import ru.practicum.ewm.main.service.CompilationService;
 @RequestMapping("/admin/compilations")
 public class AdminCompilationController {
 
+    public static final String COMP_ID = "comp-id";
     private final CompilationService compilationService;
 
     @PostMapping
-    public ResponseEntity<CompilationDto> create(@RequestBody NewCompilationDto dto) {
-        return ResponseEntity.status(201).body(compilationService.addCompilation(dto));
+    @ResponseStatus(HttpStatus.CREATED)
+    public CompilationDto create(@Valid @RequestBody NewCompilationDto newCompilationDto) {
+        return compilationService.create(newCompilationDto);
     }
 
-    @PatchMapping("/{compId}")
-    public ResponseEntity<CompilationDto> update(@PathVariable Long compId,
-                                                 @RequestBody UpdateCompilationRequest dto) {
-        return ResponseEntity.ok(compilationService.updateCompilation(compId, dto));
+    @DeleteMapping("/{" + COMP_ID + "}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable(COMP_ID) Long compId) {
+        compilationService.deleteById(compId);
     }
 
-    @DeleteMapping("/{compId}")
-    public ResponseEntity<Void> delete(@PathVariable Long compId) {
-        compilationService.deleteCompilation(compId);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{" + COMP_ID + "}")
+    public CompilationDto update(@PathVariable(COMP_ID) Long compId,
+                                 @Valid @RequestBody UpdateCompilationRequest updateCompilationRequest) {
+        return compilationService.update(compId, updateCompilationRequest);
     }
 }

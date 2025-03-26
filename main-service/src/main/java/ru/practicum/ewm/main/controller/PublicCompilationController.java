@@ -14,18 +14,18 @@ import java.util.List;
 @RequestMapping("/compilations")
 public class PublicCompilationController {
 
+    public static final String COMP_ID = "comp-id";
     private final CompilationService compilationService;
 
     @GetMapping
-    public ResponseEntity<List<CompilationDto>> getAll(@RequestParam(required = false) Boolean pinned,
-                                                       @RequestParam(defaultValue = "0") int from,
-                                                       @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(compilationService.getCompilations(pinned, from, size));
+    public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
+                                                @RequestParam(defaultValue = "0") int from,
+                                                @RequestParam(defaultValue = "10") int size) {
+        return compilationService.getCompilations(pinned, from, size);
     }
 
-    @GetMapping("/{compId}")
-    public ResponseEntity<CompilationFullDto> getById(@PathVariable Long compId) {
-        return ResponseEntity.ok(compilationService.getCompilationFullById(compId));
+    @GetMapping("/{" + COMP_ID + "}")
+    public CompilationDto getCompilationById(@PathVariable(COMP_ID) Long compId) {
+        return compilationService.getCompilationById(compId);
     }
-
 }
