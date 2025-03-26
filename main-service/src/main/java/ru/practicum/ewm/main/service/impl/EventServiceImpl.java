@@ -1,25 +1,13 @@
 package ru.practicum.ewm.main.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.Query;
-import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.hibernate.HibernateQuery;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
-import org.hibernate.StatelessSession;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.querydsl.QSort;
 import org.springframework.http.HttpStatus;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.ewm.client.StatClient;
 import ru.practicum.ewm.dto.EndpointHitDto;
@@ -27,7 +15,6 @@ import ru.practicum.ewm.dto.ViewStatsDto;
 import ru.practicum.ewm.main.dto.*;
 import ru.practicum.ewm.main.dto.params.EventParamsAdmin;
 import ru.practicum.ewm.main.dto.params.EventParamsPublic;
-import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.exception.ValidationException;
 import ru.practicum.ewm.main.mapper.EventMapper;
@@ -43,7 +30,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -96,13 +82,15 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto createUserEvent(Long userId, NewEventDto dto) {
-
-        System.out.println("createUserEvent" + dto);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
 
         Category category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Категория с id: " + dto.getCategory() + " не найдена!"));
+
+        if (dto.getEventDate().isBefore(LocalDateTime.now())) {
+            throw new ValidationException("Дата события не может в прошлом: " + dto.getEventDate());
+        }
 
         Event event = EventMapper.toEntity(dto, userId);
 
@@ -118,16 +106,24 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+                .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено!"));
 
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new IllegalStateException("User is not the owner of this event");
+            throw new ValidationException("User is not the owner of this event");
         }
 
         if (dto.getTitle() != null) event.setTitle(dto.getTitle());
         if (dto.getAnnotation() != null) event.setAnnotation(dto.getAnnotation());
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
-        if (dto.getEventDate() != null) event.setEventDate(LocalDateTime.parse(dto.getEventDate().replace(" ", "T")));
+        if (dto.getEventDate() != null) {
+            LocalDateTime newEventDate = LocalDateTime.parse(dto.getEventDate().replace(" ", "T"));
+
+            if (newEventDate.isBefore(LocalDateTime.now())) {
+                throw new ValidationException("Дата события не может в прошлом: " + dto.getEventDate());
+            }
+            event.setEventDate(newEventDate);
+
+        }
         if (dto.getPaid() != null) event.setPaid(dto.getPaid());
         if (dto.getParticipantLimit() != null) event.setParticipantLimit(dto.getParticipantLimit());
         if (dto.getRequestModeration() != null) event.setRequestModeration(dto.getRequestModeration());
@@ -197,12 +193,12 @@ public class EventServiceImpl implements EventService {
 
         where.and(event.paid.eq(paid));
 
-        if (rangeStart != null ) {
+        if (rangeStart != null) {
             where.and(event.eventDate.after(rangeStart));
 
         }
 
-        if (rangeEnd != null ) {
+        if (rangeEnd != null) {
 
             where.and(event.eventDate.before(rangeEnd));
         }
@@ -261,8 +257,6 @@ public class EventServiceImpl implements EventService {
         LocalDateTime rangeEnd = null;
 
 
-
-
         if (!states.isEmpty()) {
             where.and(event.state.in(states));
         }
@@ -293,14 +287,12 @@ public class EventServiceImpl implements EventService {
         }
 
 
-
-
-        if (rangeStart != null ) {
+        if (rangeStart != null) {
             where.and(event.eventDate.after(rangeStart));
 
         }
 
-        if (rangeEnd != null ) {
+        if (rangeEnd != null) {
 
             where.and(event.eventDate.before(rangeEnd));
         }
@@ -329,7 +321,7 @@ public class EventServiceImpl implements EventService {
                 false
         );
 
-        return stats.isEmpty() ? 0 : stats.get(0).getHits();
+        return stats.isEmpty() ? 0 : stats.getFirst().getHits();
     }
 
     // --- ADMIN API ---
@@ -401,8 +393,13 @@ public class EventServiceImpl implements EventService {
             event.setCategory(category);
         }
         if (dto.getEventDate() != null) {
-            event.setEventDate(LocalDateTime.parse(dto.getEventDate().replace(" ", "T")));
+            LocalDateTime newEventDate = LocalDateTime.parse(dto.getEventDate().replace(" ", "T"));
+            if (newEventDate.isBefore(LocalDateTime.now())) {
+                throw new ValidationException("Дата события не может в прошлом: " + dto.getEventDate());
+            }
+            event.setEventDate(newEventDate);
         }
+
         if (dto.getLocation() != null) {
             event.setLocation(new Location(dto.getLocation().getLat(), dto.getLocation().getLon()));
         }
