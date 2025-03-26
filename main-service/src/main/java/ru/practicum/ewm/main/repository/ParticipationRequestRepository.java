@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.practicum.ewm.main.model.ParticipationRequest;
+import ru.practicum.ewm.main.model.ParticipationRequestStatus;
 
 import java.util.List;
 
@@ -15,4 +16,6 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
 
     // Получить все заявки на событие
     List<ParticipationRequest> findAllByEventId(Long eventId);
+
+    long countByEventIdAndStatus(Long eventId, ParticipationRequestStatus status);
 }

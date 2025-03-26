@@ -15,31 +15,20 @@ public class PrivateRequestController {
 
     private final RequestService requestService;
 
-    /**
-     * Получение всех заявок пользователя
-     */
     @GetMapping
     public ResponseEntity<List<ParticipationRequestDto>> getUserRequests(@PathVariable Long userId) {
         return ResponseEntity.ok(requestService.getUserRequests(userId));
     }
 
-    /**
-     * Добавление новой заявки на участие в событии
-     */
     @PostMapping
-    public ResponseEntity<ParticipationRequestDto> addRequest(
-            @PathVariable Long userId,
-            @RequestParam Long eventId) {
+    public ResponseEntity<ParticipationRequestDto> addRequest(@PathVariable Long userId,
+                                                              @RequestParam Long eventId) {
         return ResponseEntity.status(201).body(requestService.addRequest(userId, eventId));
     }
 
-    /**
-     * Отмена заявки пользователем
-     */
     @PatchMapping("/{requestId}/cancel")
-    public ResponseEntity<ParticipationRequestDto> cancelRequest(
-            @PathVariable Long userId,
-            @PathVariable Long requestId) {
+    public ResponseEntity<ParticipationRequestDto> cancelRequest(@PathVariable Long userId,
+                                                                 @PathVariable Long requestId) {
         return ResponseEntity.ok(requestService.cancelRequest(userId, requestId));
     }
 }

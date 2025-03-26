@@ -8,6 +8,7 @@ import ru.practicum.ewm.main.dto.AdminUserParam;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
 import ru.practicum.ewm.main.dto.UserShortDto;
+import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.UserMapper;
 import ru.practicum.ewm.main.model.User;
@@ -27,6 +28,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto createUser(NewUserRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException("User with this email already exists");
+        }
         User user = UserMapper.toEntity(request);
         return UserMapper.toDto(userRepository.save(user));
     }
@@ -50,6 +55,9 @@ public class UserServiceImpl implements UserService {
       userRepository.deleteById(userId);
     }
 
+    //!!!!!!!!
+    //этот метод надо переделать, он не должен использоваться в других сервисах и не должен возвращать дто (это надо делать в маппере)
+    //!!!!!!
     @Override
     public UserShortDto getShortById(Long userId) {
         User user = userRepository.findById(userId)
