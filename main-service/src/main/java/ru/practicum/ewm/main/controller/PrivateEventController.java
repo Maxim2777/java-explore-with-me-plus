@@ -19,10 +19,8 @@ public class PrivateEventController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<List<EventShortDto>> getAll(@PathVariable Long userId,
-                                                      @RequestParam(defaultValue = "0") int from,
-                                                      @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(eventService.getUserEvents(userId, from, size));
+    public ResponseEntity<List<EventShortDto>> getAll(@PathVariable Long userId, @Valid AdminUserParam params) {
+        return ResponseEntity.ok(eventService.getUserEvents(userId, params));
     }
 
     @PostMapping
