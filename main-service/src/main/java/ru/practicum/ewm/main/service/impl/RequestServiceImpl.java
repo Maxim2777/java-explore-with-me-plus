@@ -44,16 +44,16 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("User already sent a request for this event.");
         }
         if (requesterId.equals(event.getInitiatorId())) {
-            throw new ConflictException("Инициатор события не может добавить запрос на участие в своём событии");
+            throw new ConflictException("The event initiator cannot submit a participation request for their own event.");
         }
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new ConflictException("нельзя участвовать в неопубликованном событии");
+            throw new ConflictException("Participation in an unpublished event is not allowed.");
         }
 
         long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId, ParticipationRequestStatus.CONFIRMED);
 
         if (confirmedRequests >= event.getParticipantLimit()) {
-            throw new ConflictException("У события достигнут лимит запросов на участие");
+            throw new ConflictException("The event has reached the participation request limit.");
         }
 
         ParticipationRequest request = ParticipationRequest.builder()
@@ -87,12 +87,12 @@ public class RequestServiceImpl implements RequestService {
 
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Юзер с id: " + userId + " не найден!"));
+                .orElseThrow(() -> new NotFoundException("User with id: " + userId + " not found!"));
     }
 
     private Event getEventById(Long eventId) {
         return eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено!"));
+                .orElseThrow(() -> new NotFoundException("Event with id: " + eventId + " not found!"));
     }
 
 }
