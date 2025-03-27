@@ -22,11 +22,11 @@ public class ParticipationRequest {
     @Enumerated(EnumType.STRING)
     private ParticipationRequestStatus status;
 
-    // Связь с пользователем (инициатор запроса)
-    @Column(name = "requester_id", nullable = false)
-    private Long requesterId;
+    @ManyToOne
+    @JoinColumn(name = "requester_id", nullable = false)
+    private User requester;
 
-    // Связь с событием
-    @Column(name = "event_id", nullable = false)
-    private Long eventId;
+    @ManyToOne
+    @JoinColumn(name = "event_id", nullable = false)
+    private Event event;
 }
