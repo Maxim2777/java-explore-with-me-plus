@@ -2,7 +2,7 @@ package ru.practicum.ewm.main.dto;
 
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -10,8 +10,9 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class CompilationDto {
+
     private Long id;
     private String title;
+    private List<EventShortDto> events;
     private boolean pinned;
-    private Set<Long> events; // изменено с EventShortDto на Long
 }

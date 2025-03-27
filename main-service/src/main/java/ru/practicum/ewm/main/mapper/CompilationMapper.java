@@ -1,22 +1,32 @@
 package ru.practicum.ewm.main.mapper;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.ewm.main.dto.CompilationDto;
+import ru.practicum.ewm.main.dto.EventShortDto;
+import ru.practicum.ewm.main.dto.NewCompilationDto;
 import ru.practicum.ewm.main.model.Compilation;
+import ru.practicum.ewm.main.model.Event;
 
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Set;
 
+@Component
 public class CompilationMapper {
 
-    public static CompilationDto toDto(Compilation compilation) {
+    public Compilation toCompilationFromNewCompilationDto(NewCompilationDto newCompilationDto, Set<Event> events) {
+        return Compilation.builder()
+                .title(newCompilationDto.getTitle())
+                .events(events)
+                .pinned(newCompilationDto.isPinned())
+                .build();
+    }
+
+    public CompilationDto toCompilationDtoFromCompilation(Compilation compilation, List<EventShortDto> events) {
         return CompilationDto.builder()
                 .id(compilation.getId())
                 .title(compilation.getTitle())
                 .pinned(compilation.isPinned())
-                .events(
-                        compilation.getEvents().stream()
-                                .map(event -> event.getId())  // ← теперь просто ID
-                                .collect(Collectors.toSet())
-                )
+                .events(events)
                 .build();
     }
 }
