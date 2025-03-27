@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,28 +12,35 @@ import ru.practicum.ewm.main.dto.UpdateCompilationRequest;
 import ru.practicum.ewm.main.service.CompilationService;
 
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/admin/compilations")
 public class AdminCompilationController {
 
-    public static final String COMP_ID = "comp-id";
     private final CompilationService compilationService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CompilationDto create(@Valid @RequestBody NewCompilationDto newCompilationDto) {
-        return compilationService.create(newCompilationDto);
+    public ResponseEntity<CompilationDto> create(@Valid @RequestBody NewCompilationDto newCompilationDto) {
+        log.info("Received request to create compilation: {}", newCompilationDto);
+        CompilationDto compilationDto = compilationService.create(newCompilationDto);
+        log.info("Compilation created with ID: {}", compilationDto.getId());
+        return new ResponseEntity<>(compilationDto, HttpStatus.CREATED);
     }
 
-    @DeleteMapping("/{" + COMP_ID + "}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable(COMP_ID) Long compId) {
+    @DeleteMapping("/{comp-id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("comp-id") Long compId) {
+        log.info("Received request to delete compilation with ID: {}", compId);
         compilationService.deleteById(compId);
+        log.info("Compilation with ID: {} has been deleted", compId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PatchMapping("/{" + COMP_ID + "}")
-    public CompilationDto update(@PathVariable(COMP_ID) Long compId,
-                                 @Valid @RequestBody UpdateCompilationRequest updateCompilationRequest) {
-        return compilationService.update(compId, updateCompilationRequest);
+    @PatchMapping("/{comp-id}")
+    public ResponseEntity<CompilationDto> update(@PathVariable("comp-id") Long compId,
+                                                 @Valid @RequestBody UpdateCompilationRequest updateCompilationRequest) {
+        log.info("Received request to update compilation with ID: {}", compId);
+        CompilationDto updatedCompilation = compilationService.update(compId, updateCompilationRequest);
+        log.info("Compilation with ID: {} has been updated", compId);
+        return new ResponseEntity<>(updatedCompilation, HttpStatus.OK);
     }
 }

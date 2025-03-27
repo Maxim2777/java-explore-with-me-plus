@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.mapper;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.ewm.main.dto.CompilationDto;
+import ru.practicum.ewm.main.dto.CompilationRequestDto;
 import ru.practicum.ewm.main.dto.EventShortDto;
 import ru.practicum.ewm.main.dto.NewCompilationDto;
 import ru.practicum.ewm.main.model.Compilation;
@@ -28,5 +29,13 @@ public class CompilationMapper {
                 .pinned(compilation.isPinned())
                 .events(events)
                 .build();
+    }
+
+    public CompilationRequestDto toCompilationRequestDto(Boolean pinned, int from, int size) {
+        CompilationRequestDto requestDto = new CompilationRequestDto();
+        requestDto.setPinned(pinned);
+        requestDto.setFrom(from);
+        requestDto.setSize(size);
+        return requestDto;
     }
 }

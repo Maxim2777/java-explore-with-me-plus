@@ -1,6 +1,7 @@
 package ru.practicum.ewm.main.service;
 
 import ru.practicum.ewm.main.dto.CompilationDto;
+import ru.practicum.ewm.main.dto.CompilationRequestDto;
 import ru.practicum.ewm.main.dto.NewCompilationDto;
 import ru.practicum.ewm.main.dto.UpdateCompilationRequest;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 public interface CompilationService {
 
-    List<CompilationDto> getCompilations(Boolean pinned, int from, int size);
+    List<CompilationDto> getCompilations(CompilationRequestDto requestDto);
 
     CompilationDto getCompilationById(Long compId);
 
