@@ -20,19 +20,21 @@ public class PrivateEventController {
 
     @GetMapping
     public ResponseEntity<List<EventShortDto>> getAll(@PathVariable Long userId, @Valid AdminUserParam params) {
+        log.info("PrivateEventController - getAll");
         return ResponseEntity.ok(eventService.getUserEvents(userId, params));
     }
 
     @PostMapping
     public ResponseEntity<EventFullDto> create(@PathVariable Long userId,
                                                @RequestBody @Valid NewEventDto dto) {
-        log.info("Create new event for {}", dto);
+        log.info("PrivateEventController - create new event for {}", dto);
         return ResponseEntity.status(201).body(eventService.createUserEvent(userId, dto));
     }
 
     @GetMapping("/{eventId}")
     public ResponseEntity<EventFullDto> getById(@PathVariable Long userId,
                                                 @PathVariable Long eventId) {
+        log.info("PrivateEventController - getById eventId = {}", eventId);
         return ResponseEntity.ok(eventService.getUserEventById(userId, eventId));
     }
 
@@ -40,6 +42,7 @@ public class PrivateEventController {
     public ResponseEntity<EventFullDto> update(@PathVariable Long userId,
                                                @PathVariable Long eventId,
                                                @RequestBody @Valid UpdateEventUserRequest dto) {
+        log.info("PrivateEventController - patch update eventId = {}", eventId);
         return ResponseEntity.ok(eventService.updateUserEvent(userId, eventId, dto));
     }
 }

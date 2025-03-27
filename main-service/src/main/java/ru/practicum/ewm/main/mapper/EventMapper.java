@@ -24,7 +24,8 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullDto toFullDto(Event event, CategoryDto category, UserShortDto initiator, long confirmed, long views) {
+    public static EventFullDto toFullDto(Event event, CategoryDto category,
+                                         UserShortDto initiator, long confirmed, long views) {
         return EventFullDto.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -59,7 +60,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullDto EntityToFullDto(Event event, long confirmed, long views) {
+    public static EventFullDto entityToFullDto(Event event, long confirmed, long views) {
         return EventFullDto.builder()
                 .id(event.getId())
                 .title(event.getTitle())

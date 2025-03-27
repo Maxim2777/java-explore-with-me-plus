@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.mapper;
 
 import ru.practicum.ewm.main.dto.CompilationDto;
 import ru.practicum.ewm.main.model.Compilation;
+import ru.practicum.ewm.main.model.Event;
 
 import java.util.stream.Collectors;
 
@@ -14,7 +15,7 @@ public class CompilationMapper {
                 .pinned(compilation.isPinned())
                 .events(
                         compilation.getEvents().stream()
-                                .map(event -> event.getId())  // ← теперь просто ID
+                                .map(Event::getId)  // ← теперь просто ID
                                 .collect(Collectors.toSet())
                 )
                 .build();

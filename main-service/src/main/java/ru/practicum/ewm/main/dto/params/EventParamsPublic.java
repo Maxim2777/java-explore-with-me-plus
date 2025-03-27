@@ -1,7 +1,6 @@
 package ru.practicum.ewm.main.dto.params;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;

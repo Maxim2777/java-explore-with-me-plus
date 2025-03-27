@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +23,7 @@ import ru.practicum.ewm.main.mapper.EventMapper;
 import ru.practicum.ewm.main.model.*;
 import ru.practicum.ewm.main.repository.CategoryRepository;
 import ru.practicum.ewm.main.repository.EventRepository;
+import ru.practicum.ewm.main.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.main.repository.UserRepository;
 import ru.practicum.ewm.main.service.EventService;
 
@@ -32,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +42,7 @@ public class EventServiceImpl implements EventService {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private final ParticipationRequestRepository requestRepository;
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
@@ -72,7 +74,7 @@ public class EventServiceImpl implements EventService {
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("User is not the owner of this event");
         }
-        return EventMapper.EntityToFullDto(event, 0, 0);
+        return EventMapper.entityToFullDto(event, 0, 0);
     }
 
     @Override
@@ -108,7 +110,11 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
 
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new ValidationException("User is not the owner of this event");
+            throw new ConflictException("User is not the owner of this event");
+        }
+
+        if (event.getState().equals(EventState.PUBLISHED)) {
+            throw new ConflictException("Нельзя изменить опубликованное событие!");
         }
 
         if (dto.getTitle() != null) event.setTitle(dto.getTitle());
@@ -138,20 +144,19 @@ public class EventServiceImpl implements EventService {
             event.setState(EventState.CANCELED);
         }
         eventRepository.save(event);
-        return EventMapper.EntityToFullDto(event, 0, 0);
+        return EventMapper.entityToFullDto(event, 0, 0);
     }
 
     // --- PUBLIC API ---
 
     @Override
     public List<EventShortDto> getPublicEvents(EventParamsPublic params, HttpServletRequest request) {
-        PageRequest page = PageRequest.of(params.getFrom() / params.getSize(), params.getSize(), Sort.unsorted());
+        PageRequest page = PageRequest.of(params.getFrom() / params.getSize(), params.getSize());
         BooleanBuilder where = new BooleanBuilder();
         QEvent event = QEvent.event;
 
         String text = params.getText();
         List<Long> categories = params.getCategories();
-        boolean paid = params.getPaid();
         boolean onlyAvailable = params.isOnlyAvailable();
         String sort = params.getSort();
         LocalDateTime rangeStart = null;
@@ -168,8 +173,8 @@ public class EventServiceImpl implements EventService {
         where.and(event.state.in(EventState.PUBLISHED));
 
         if (text != null && !text.isEmpty()) {
-            where.and(event.annotation.contains("%" + text.toLowerCase() + "%")
-                    .or(event.description.contains("%" + text.toLowerCase() + "%")));
+            where.or(event.annotation.like("%" + text.toLowerCase() + "%")
+                    .or(event.description.like("%" + text.toLowerCase() + "%")));
         }
 
         if (categories != null && !categories.isEmpty()) {
@@ -179,7 +184,9 @@ public class EventServiceImpl implements EventService {
             where.and(event.category.id.in(categories));
         }
 
-        where.and(event.paid.eq(paid));
+        if (params.getPaid() != null) {
+            where.and(event.paid.eq(params.getPaid()));
+        }
 
         if (rangeStart != null) {
             where.and(event.eventDate.after(rangeStart));
@@ -189,8 +196,17 @@ public class EventServiceImpl implements EventService {
             where.and(event.eventDate.before(rangeEnd));
         }
 
-        Page<Event> events = eventRepository.findAll(where, page);
+        List<Event> events = eventRepository.findAll(where, page).getContent();
 
+        Map<Long, Long> confirmedRequests = getConfirmedRequests(events);
+
+        if (onlyAvailable) {
+            events = events
+                    .stream()
+                    .filter(e -> e.getParticipantLimit() > confirmedRequests
+                            .getOrDefault(e.getId(), 0L))
+                    .toList();
+        }
         List<EventShortDto> eventShorts = new ArrayList<>();
 
         List<String> uris = new ArrayList<>();
@@ -210,6 +226,7 @@ public class EventServiceImpl implements EventService {
         if (sort == null) {
             return eventShorts;
         }
+
         return switch (sort) {
             case "VIEWS" -> eventShorts
                     .stream()
@@ -244,7 +261,7 @@ public class EventServiceImpl implements EventService {
                 .timestamp(LocalDateTime.now())
                 .build());
 
-        return EventMapper.EntityToFullDto(event,
+        return EventMapper.entityToFullDto(event,
                 0, views);
     }
 
@@ -302,7 +319,7 @@ public class EventServiceImpl implements EventService {
 
         for (Event e : iterableEvents) {
             events.add(EventMapper
-                    .EntityToFullDto(e, 0, getViews(e.getId())));
+                    .entityToFullDto(e, 0, getViews(e.getId())));
         }
         return events;
     }
@@ -341,20 +358,20 @@ public class EventServiceImpl implements EventService {
 
         if ("PUBLISH_EVENT".equals(dto.getStateAction())) {
             if (!event.getState().equals(EventState.PENDING)) {
-                throw new IllegalStateException("Event must be in PENDING state to publish");
+                throw new ConflictException("Event must be in PENDING state to publish");
             }
             event.setState(EventState.PUBLISHED);
             event.setPublishedOn(LocalDateTime.now());
         } else if ("REJECT_EVENT".equals(dto.getStateAction())) {
             if (event.getState().equals(EventState.PUBLISHED)) {
-                throw new IllegalStateException("Cannot reject a published event");
+                throw new ConflictException("Cannot reject a published event");
             }
             event.setState(EventState.CANCELED);
         }
 
         eventRepository.save(event);
 
-        return EventMapper.EntityToFullDto(event, 0, 0);
+        return EventMapper.entityToFullDto(event, 0, 0);
     }
 
     private long getViews(Long eventId) {
@@ -367,5 +384,13 @@ public class EventServiceImpl implements EventService {
                 true
         );
         return stats.isEmpty() ? 0 : stats.getFirst().getHits();
+    }
+
+    private Map<Long, Long> getConfirmedRequests(List<Event> events) {
+        return events
+                .stream()
+                .collect(Collectors
+                        .toMap(Event::getId, e -> (long) requestRepository
+                                .findAllByEventId(e.getId()).size(), (a, b) -> b));
     }
 }

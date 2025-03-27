@@ -1,8 +1,6 @@
 package ru.practicum.ewm.main.mapper;
 
 import ru.practicum.ewm.main.dto.CompilationFullDto;
-import ru.practicum.ewm.main.dto.CategoryDto;
-import ru.practicum.ewm.main.dto.UserShortDto;
 import ru.practicum.ewm.main.model.Compilation;
 
 import java.util.stream.Collectors;

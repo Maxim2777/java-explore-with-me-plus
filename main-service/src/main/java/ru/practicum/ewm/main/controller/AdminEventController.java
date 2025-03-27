@@ -21,15 +21,15 @@ public class AdminEventController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<List<EventFullDto>> getEvents(@Valid EventParamsAdmin params) {
-        log.info("Get events for {}", params);
+    public ResponseEntity<List<EventFullDto>> getEvents(@ModelAttribute EventParamsAdmin params) {
+        log.info("AdminEventController - Get events for {}", params);
         return ResponseEntity.ok(eventService.getEventsByAdmin(params));
     }
 
     @PatchMapping("/{eventId}")
     public ResponseEntity<EventFullDto> update(@PathVariable Long eventId,
                                                @RequestBody @Valid UpdateEventAdminRequest dto) {
+        log.info("AdminEventController - Updating event: {}", dto);
         return ResponseEntity.ok(eventService.updateEventByAdmin(eventId, dto));
     }
 }
-

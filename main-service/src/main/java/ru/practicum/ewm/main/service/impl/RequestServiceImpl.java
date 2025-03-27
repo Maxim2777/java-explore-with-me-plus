@@ -43,7 +43,7 @@ public class RequestServiceImpl implements RequestService {
         if (requestRepository.existsByRequesterIdAndEventId(requesterId, eventId)) {
             throw new ConflictException("User already sent a request for this event.");
         }
-        if (requesterId.equals(event.getInitiatorId())) {
+        if (requesterId.equals(event.getInitiator().getId())) {
             throw new ConflictException("The event initiator cannot submit a participation request for their own event.");
         }
         if (!event.getState().equals(EventState.PUBLISHED)) {
