@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.CompilationDto;
 import ru.practicum.ewm.main.dto.CompilationRequestDto;
@@ -20,22 +21,25 @@ public class PublicCompilationController {
     private final CompilationMapper compilationMapper;
 
     @GetMapping
-    public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
-                                                @RequestParam(defaultValue = "0") int from,
-                                                @RequestParam(defaultValue = "10") int size) {
-        CompilationRequestDto requestDto = compilationMapper.toCompilationRequestDto(pinned, from, size);
+    public ResponseEntity<List<CompilationDto>> getCompilations(@ModelAttribute CompilationRequestDto requestDto) {
+        log.info("Received request to get compilations with pinned = {}, from = {}, size = {}",
+                requestDto.getPinned(), requestDto.getFrom(), requestDto.getSize());
 
-        log.info("Получен запрос на получение компиляций с pinned = {}, from = {}, size = {}", pinned, from, size);
         List<CompilationDto> compilations = compilationService.getCompilations(requestDto);
-        log.info("Возвращаем {} компиляций", compilations.size());
-        return compilations;
+        log.info("Returning {} compilations", compilations.size());
+
+        return ResponseEntity.ok(compilations);
     }
 
     @GetMapping("/{comp-id}")
-    public CompilationDto getCompilationById(@PathVariable("comp-id") Long compId) {
+    public ResponseEntity<CompilationDto> getCompilationById(@PathVariable("comp-id") Long compId) {
         log.info("Received request to get compilation with ID: {}", compId);
         CompilationDto compilationDto = compilationService.getCompilationById(compId);
+        if (compilationDto == null) {
+            log.warn("Compilation with ID: {} not found", compId);
+            return ResponseEntity.notFound().build();
+        }
         log.info("Returning compilation with ID: {}", compId);
-        return compilationDto;
+        return ResponseEntity.ok(compilationDto);
     }
 }
