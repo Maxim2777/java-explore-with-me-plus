@@ -1,13 +1,21 @@
 package ru.practicum.ewm.main.dto;
 
-import lombok.*;
-import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class NewEventDto {
 
     @NotBlank(message = "Title must not be blank")
@@ -28,8 +36,8 @@ public class NewEventDto {
     @NotNull(message = "Location is required")
     private LocationDto location;
 
-    @NotBlank(message = "Event date is required")
-    private String eventDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
 
     private boolean paid = false;
 

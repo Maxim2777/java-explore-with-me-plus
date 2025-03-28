@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ru.practicum.ewm.main.model.enums.EventState;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "events")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -50,9 +52,11 @@ public class Event {
     @Embedded
     private Location location;
 
-    @Column(name = "initiator_id")
-    private Long initiatorId;
+    @ManyToOne
+    @JoinColumn(name = "initiator_id")
+    private User initiator;
 
-    @Column(name = "category_id")
-    private Long categoryId;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

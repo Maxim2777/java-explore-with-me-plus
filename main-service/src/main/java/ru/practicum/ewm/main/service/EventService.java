@@ -1,12 +1,15 @@
 package ru.practicum.ewm.main.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import ru.practicum.ewm.main.dto.*;
+import ru.practicum.ewm.main.dto.params.EventParamsAdmin;
+import ru.practicum.ewm.main.dto.params.EventParamsPublic;
 
 import java.util.List;
 
 public interface EventService {
 
-    List<EventShortDto> getUserEvents(Long userId, int from, int size);
+    List<EventShortDto> getUserEvents(Long userId, AdminUserParam params);
 
     EventFullDto getUserEventById(Long userId, Long eventId);
 
@@ -14,26 +17,16 @@ public interface EventService {
 
     EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest dto);
 
-    List<EventShortDto> getPublicEvents(String text,
-                                        List<Long> categories,
-                                        Boolean paid,
-                                        String rangeStart,
-                                        String rangeEnd,
-                                        Boolean onlyAvailable,
-                                        String sort,
-                                        int from,
-                                        int size);
+    List<EventShortDto> getPublicEvents(EventParamsPublic params, HttpServletRequest request);
 
-    EventFullDto getEventById(Long id, String ip, String uri);
+    EventFullDto getEventById(Long eventId, HttpServletRequest request);
 
-    List<EventFullDto> getEventsByAdmin(List<Long> users,
-                                        List<String> states,
-                                        List<Long> categories,
-                                        String rangeStart,
-                                        String rangeEnd,
-                                        int from,
-                                        int size);
+    List<EventFullDto> getEventsByAdmin(EventParamsAdmin params);
 
     EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest dto);
 
+    EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
+                                                       EventRequestStatusUpdateRequest requestUpdate);
+
+    List<ParticipationRequestDto> getAllParticipationRequestsByUserIdAndEventId(Long userId, Long eventId);
 }

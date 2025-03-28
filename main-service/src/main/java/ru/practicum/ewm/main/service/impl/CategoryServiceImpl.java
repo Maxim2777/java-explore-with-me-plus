@@ -1,5 +1,6 @@
 package ru.practicum.ewm.main.service.impl;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.CategoryMapper;
 import ru.practicum.ewm.main.model.Category;
 import ru.practicum.ewm.main.model.Event;
+import ru.practicum.ewm.main.model.QEvent;
 import ru.practicum.ewm.main.repository.CategoryRepository;
 import ru.practicum.ewm.main.repository.EventRepository;
 import ru.practicum.ewm.main.service.CategoryService;
@@ -60,7 +62,8 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Long catId) {
         getCategoryById(catId);
 
-        List<Event> eventsByCategory = eventRepository.findAllByCategoryId(catId);
+        BooleanExpression byCategoryId = QEvent.event.category.id.eq(catId);
+        List<Event> eventsByCategory = (List<Event>) eventRepository.findAll(byCategoryId);
 
         if (eventsByCategory.isEmpty()) {
             categoryRepository.deleteById(catId);
