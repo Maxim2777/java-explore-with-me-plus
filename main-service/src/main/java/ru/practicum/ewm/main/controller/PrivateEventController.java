@@ -45,4 +45,20 @@ public class PrivateEventController {
         log.info("PrivateEventController - patch update eventId = {}", eventId);
         return ResponseEntity.ok(eventService.updateUserEvent(userId, eventId, dto));
     }
+
+    @GetMapping("/{eventId}/requests")
+    public ResponseEntity<List<ParticipationRequestDto>> getRequests(@PathVariable Long userId,
+                                                                     @PathVariable Long eventId) {
+        log.info("PrivateEventController - getRequests eventId = {}", eventId);
+        return ResponseEntity.ok(eventService.getAllParticipationRequestsByUserIdAndEventId(userId, eventId));
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public ResponseEntity<EventRequestStatusUpdateResult> updateRequests(@PathVariable Long userId,
+                                                                         @PathVariable Long eventId,
+                                                                         @RequestBody @Valid
+                                                                         EventRequestStatusUpdateRequest request) {
+        log.info("PrivateEventController - updateRequests eventId = {}", eventId);
+        return ResponseEntity.ok(eventService.updateRequestStatus(userId, eventId, request));
+    }
 }

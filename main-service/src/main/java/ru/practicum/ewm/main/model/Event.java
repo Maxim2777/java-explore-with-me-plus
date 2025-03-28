@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import ru.practicum.ewm.main.model.enums.EventState;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "events")
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

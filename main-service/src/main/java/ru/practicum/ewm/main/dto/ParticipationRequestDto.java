@@ -1,7 +1,7 @@
 package ru.practicum.ewm.main.dto;
 
 import lombok.*;
-import ru.practicum.ewm.main.model.ParticipationRequestStatus;
+import ru.practicum.ewm.main.model.enums.ParticipationRequestStatus;
 
 import java.time.LocalDateTime;
 

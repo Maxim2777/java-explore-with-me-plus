@@ -8,6 +8,8 @@ import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.ParticipationRequestMapper;
 import ru.practicum.ewm.main.model.*;
+import ru.practicum.ewm.main.model.enums.EventState;
+import ru.practicum.ewm.main.model.enums.ParticipationRequestStatus;
 import ru.practicum.ewm.main.repository.EventRepository;
 import ru.practicum.ewm.main.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.main.repository.UserRepository;
@@ -52,7 +54,7 @@ public class RequestServiceImpl implements RequestService {
 
         long confirmedRequests = requestRepository.countByEventIdAndStatus(eventId, ParticipationRequestStatus.CONFIRMED);
 
-        if (confirmedRequests >= event.getParticipantLimit()) {
+        if (confirmedRequests >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
             throw new ConflictException("The event has reached the participation request limit.");
         }
 
@@ -63,7 +65,7 @@ public class RequestServiceImpl implements RequestService {
                 .status(ParticipationRequestStatus.PENDING)
                 .build();
 
-        if (!event.isRequestModeration()) {
+        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) {
             request.setStatus(ParticipationRequestStatus.CONFIRMED);
         }
 
@@ -94,5 +96,4 @@ public class RequestServiceImpl implements RequestService {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id: " + eventId + " not found!"));
     }
-
 }

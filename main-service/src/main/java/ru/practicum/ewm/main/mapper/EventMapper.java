@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.mapper;
 
 import ru.practicum.ewm.main.dto.*;
 import ru.practicum.ewm.main.model.*;
+import ru.practicum.ewm.main.model.enums.EventState;
 
 import java.time.LocalDateTime;
 
