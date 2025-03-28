@@ -56,7 +56,7 @@ public class EventServiceImpl implements EventService {
         int size = params.getSize();
 
         PageRequest page = PageRequest.of(from / size, size);
-        checkUser(userId);
+        getUserById(userId);
 
         BooleanExpression byUserId = QEvent.event.initiator.id.eq(userId);
         List<Event> events = eventRepository.findAll(byUserId, page).getContent();
@@ -73,7 +73,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto getUserEventById(Long userId, Long eventId) {
-        checkUser(userId);
+        getUserById(userId);
 
         Event event = getEventById(eventId);
 
@@ -90,8 +90,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto createUserEvent(Long userId, NewEventDto dto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
+        User user = getUserById(userId);
 
         Category category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Категория с id: " + dto.getCategory() + " не найдена!"));
@@ -116,7 +115,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = getEventById(eventId);
 
-        checkUser(userId);
+        getUserById(userId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("User is not the owner of this event");
@@ -165,17 +164,10 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<ParticipationRequestDto> getAllParticipationRequestsByUserIdAndEventId(Long userId, Long eventId) {
-        BooleanExpression byEventId = QEvent.event.id.eq(eventId);
-        eventRepository.findOne(byEventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено!"));
-
-        checkUser(userId);
+        getEventById(eventId);
+        getUserById(userId);
 
         List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
-        System.out.println(requests + "requests");
-        for (ParticipationRequest request : requestRepository.findAll()) {
-            System.out.println(request.toString() + "request");
-        }
 
         return requests.stream().map(ParticipationRequestMapper::toDto).collect(Collectors.toList());
     }
@@ -185,8 +177,7 @@ public class EventServiceImpl implements EventService {
     public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
                                                               EventRequestStatusUpdateRequest requestUpdate) {
         Event event = getEventById(eventId);
-
-        checkUser(userId);
+        getUserById(userId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("User is not the owner of this event");
@@ -195,16 +186,9 @@ public class EventServiceImpl implements EventService {
         List<Long> requestIds = requestUpdate.getRequestIds();
         RequestStatus status = requestUpdate.getStatus();
         int requestCount = requestIds.size();
-
-
         int limit = event.getParticipantLimit();
 
-     /*  if (limit == 0 || !event.isRequestModeration()) {
-            throw new ConflictException("Подтверждение заявок не требуется");
-        }
-       */
-
-        List<ParticipationRequest> requests = requestRepository.findAllByEventIdIn(requestIds);
+        List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
 
         long currentConfirmed = requestRepository.countByEventIdAndStatus(eventId, ParticipationRequestStatus.CONFIRMED);
 
@@ -212,12 +196,14 @@ public class EventServiceImpl implements EventService {
             throw new ConflictException("Достигнут лимит по заявкам на данное событие: " + event);
         }
 
-        for (ParticipationRequest request : requests) {
-            if (!request.getStatus().equals(ParticipationRequestStatus.PENDING)) {
-                throw new ConflictException("Статус можно изменить только у заявок, находящихся в состоянии ожидания." +
-                                            " Заявка имеет статус: " + request.getStatus());
-            }
-        }
+        requests
+                .stream()
+                .filter(request -> !request.getStatus()
+                        .equals(ParticipationRequestStatus.PENDING))
+                .forEach(request -> {
+                    throw new ConflictException("Статус можно изменить только у заявок, находящихся в состоянии " +
+                                                "ожидания. Заявка имеет статус: " + request.getStatus());
+                });
 
         List<ParticipationRequest> updatedRequests = new ArrayList<>();
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
@@ -239,7 +225,7 @@ public class EventServiceImpl implements EventService {
                             request.setStatus(ParticipationRequestStatus.CONFIRMED);
                             updatedRequests.add(request);
                             confirmedRequests.add(ParticipationRequestMapper.toDto(request));
-                            currentConfirmed++;
+                            currentConfirmed = currentConfirmed + 1;
                         } else {
                             request.setStatus(ParticipationRequestStatus.REJECTED);
                             updatedRequests.add(request);
@@ -559,8 +545,9 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено!"));
     }
 
-    private void checkUser(Long userId) {
-        userRepository.findById(userId)
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
+
     }
 }
