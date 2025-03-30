@@ -15,6 +15,7 @@ import ru.practicum.ewm.dto.ViewStatsDto;
 import ru.practicum.ewm.main.dto.*;
 import ru.practicum.ewm.main.dto.params.EventParamsAdmin;
 import ru.practicum.ewm.main.dto.params.EventParamsPublic;
+import ru.practicum.ewm.main.dto.params.UserParamsAdmin;
 import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.exception.ValidationException;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final ParticipationRequestRepository requestRepository;
     private final CategoryRepository categoryRepository;
@@ -51,7 +52,7 @@ public class EventServiceImpl implements EventService {
     // --- PRIVATE API ---
 
     @Override
-    public List<EventShortDto> getUserEvents(Long userId, AdminUserParam params) {
+    public List<EventShortDto> getUserEvents(Long userId, UserParamsAdmin params) {
         int from = params.getFrom();
         int size = params.getSize();
 
@@ -90,9 +91,9 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventFullDto createUserEvent(Long userId, NewEventDto dto) {
-        User user = getUserById(userId);
+        getUserById(userId);
 
-        Category category = categoryRepository.findById(dto.getCategory())
+        categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Категория с id: " + dto.getCategory() + " не найдена!"));
 
         if (dto.getEventDate().isBefore(LocalDateTime.now()) ||
@@ -104,10 +105,7 @@ public class EventServiceImpl implements EventService {
         Event event = EventMapper.toEntity(dto, userId);
         Event savedEvent = eventRepository.save(event);
 
-        return EventMapper.toFullDto(savedEvent,
-                new CategoryDto(category.getId(), category.getName()),
-                new UserShortDto(user.getId(), user.getName()),
-                0, 0);
+        return EventMapper.entityToFullDto(savedEvent, 0, 0);
     }
 
     @Override
@@ -545,9 +543,8 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено!"));
     }
 
-    private User getUserById(Long userId) {
-        return userRepository.findById(userId)
+    private void getUserById(Long userId) {
+        userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
-
     }
 }

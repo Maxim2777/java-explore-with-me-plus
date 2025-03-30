@@ -5,8 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.CompilationDto;
-import ru.practicum.ewm.main.dto.CompilationRequestDto;
-import ru.practicum.ewm.main.mapper.CompilationMapper;
+import ru.practicum.ewm.main.dto.params.CompilationParamsPublic;
 import ru.practicum.ewm.main.service.CompilationService;
 
 import java.util.List;
@@ -18,14 +17,13 @@ import java.util.List;
 public class PublicCompilationController {
 
     private final CompilationService compilationService;
-    private final CompilationMapper compilationMapper;
 
     @GetMapping
-    public ResponseEntity<List<CompilationDto>> getCompilations(@ModelAttribute CompilationRequestDto requestDto) {
+    public ResponseEntity<List<CompilationDto>> getCompilations(@ModelAttribute CompilationParamsPublic params) {
         log.info("Received request to get compilations with pinned = {}, from = {}, size = {}",
-                requestDto.getPinned(), requestDto.getFrom(), requestDto.getSize());
+                params.getPinned(), params.getFrom(), params.getSize());
 
-        List<CompilationDto> compilations = compilationService.getCompilations(requestDto);
+        List<CompilationDto> compilations = compilationService.getCompilations(params);
         log.info("Returning {} compilations", compilations.size());
 
         return ResponseEntity.ok(compilations);

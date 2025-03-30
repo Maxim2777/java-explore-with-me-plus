@@ -7,7 +7,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.main.dto.*;
+import ru.practicum.ewm.main.dto.CompilationDto;
+import ru.practicum.ewm.main.dto.EventShortDto;
+import ru.practicum.ewm.main.dto.NewCompilationDto;
+import ru.practicum.ewm.main.dto.UpdateCompilationRequest;
+import ru.practicum.ewm.main.dto.params.CompilationParamsPublic;
 import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.CompilationMapper;
@@ -18,7 +22,10 @@ import ru.practicum.ewm.main.repository.CompilationRepository;
 import ru.practicum.ewm.main.repository.EventRepository;
 import ru.practicum.ewm.main.service.CompilationService;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,12 +40,12 @@ public class CompilationServiceImpl implements CompilationService {
     final EventMapper eventMapper;
 
     @Override
-    public List<CompilationDto> getCompilations(CompilationRequestDto requestDto) {
-        Pageable pageable = PageRequest.of(requestDto.getFrom() / requestDto.getSize(), requestDto.getSize());
+    public List<CompilationDto> getCompilations(CompilationParamsPublic params) {
+        Pageable pageable = PageRequest.of(params.getFrom() / params.getSize(), params.getSize());
 
         Page<Compilation> compilationsPage;
-        if (requestDto.getPinned() != null) {
-            compilationsPage = compilationRepository.findAllByPinned(requestDto.getPinned(), pageable);
+        if (params.getPinned() != null) {
+            compilationsPage = compilationRepository.findAllByPinned(params.getPinned(), pageable);
         } else {
             compilationsPage = compilationRepository.findAll(pageable);
         }
@@ -47,7 +54,7 @@ public class CompilationServiceImpl implements CompilationService {
             return List.of();
         }
 
-        List<CompilationDto> compilationDtos = compilationsPage.getContent().stream()
+        return compilationsPage.getContent().stream()
                 .map(compilation -> {
                     List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
                             .map(eventMapper::toEventShortDtoFromEvent)
@@ -56,10 +63,7 @@ public class CompilationServiceImpl implements CompilationService {
                     return compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
                 })
                 .collect(Collectors.toList());
-
-        return compilationDtos;
     }
-
 
 
     @Override
@@ -71,9 +75,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .map(eventMapper::toEventShortDtoFromEvent)
                 .collect(Collectors.toList());
 
-        CompilationDto compilationDto = compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
-
-        return compilationDto;
+        return compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
     }
 
 
@@ -96,9 +98,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         List<EventShortDto> eventShortDtos = compilation.getEvents().stream().map(eventMapper::toEventShortDtoFromEvent).toList();
 
-        CompilationDto compilationDto = compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
-
-        return compilationDto;
+        return compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
     }
 
     @Override
@@ -141,14 +141,11 @@ public class CompilationServiceImpl implements CompilationService {
             updatedFieldsLog.append("Pinned|");
         }
 
-        String updatedFields = updatedFieldsLog.toString().replaceAll("\\|$", "").replace("|", ", ");
         compilationRepository.save(compilation);
 
-        CompilationDto compilationDto = compilationMapper.toCompilationDtoFromCompilation(compilation, compilation.getEvents().stream()
+        return compilationMapper.toCompilationDtoFromCompilation(compilation, compilation.getEvents().stream()
                 .map(eventMapper::toEventShortDtoFromEvent)
                 .toList());
-
-        return compilationDto;
     }
 
 }

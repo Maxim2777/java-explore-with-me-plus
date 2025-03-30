@@ -4,12 +4,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import ru.practicum.ewm.main.dto.*;
 import ru.practicum.ewm.main.dto.params.EventParamsAdmin;
 import ru.practicum.ewm.main.dto.params.EventParamsPublic;
+import ru.practicum.ewm.main.dto.params.UserParamsAdmin;
 
 import java.util.List;
 
 public interface EventService {
 
-    List<EventShortDto> getUserEvents(Long userId, AdminUserParam params);
+    List<EventShortDto> getUserEvents(Long userId, UserParamsAdmin params);
 
     EventFullDto getUserEventById(Long userId, Long eventId);
 

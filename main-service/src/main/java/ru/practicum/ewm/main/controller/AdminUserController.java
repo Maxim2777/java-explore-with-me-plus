@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.main.dto.AdminUserParam;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
+import ru.practicum.ewm.main.dto.params.UserParamsAdmin;
 import ru.practicum.ewm.main.service.UserService;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class AdminUserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAll(@ModelAttribute AdminUserParam param) {
+    public ResponseEntity<List<UserDto>> getAll(@ModelAttribute UserParamsAdmin param) {
         log.info("AdminUserController - Getting all users with params: {}", param);
         return ResponseEntity.ok(userService.getUsers(param));
     }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.main.dto.*;
+import ru.practicum.ewm.main.dto.params.UserParamsAdmin;
 import ru.practicum.ewm.main.service.EventService;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class PrivateEventController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<List<EventShortDto>> getAll(@PathVariable Long userId, @Valid AdminUserParam params) {
+    public ResponseEntity<List<EventShortDto>> getAll(@PathVariable Long userId, @Valid UserParamsAdmin params) {
         log.info("PrivateEventController - getAll");
         return ResponseEntity.ok(eventService.getUserEvents(userId, params));
     }

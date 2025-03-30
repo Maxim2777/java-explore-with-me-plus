@@ -27,28 +27,6 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullDto toFullDto(Event event, CategoryDto category,
-                                         UserShortDto initiator, long confirmed, long views) {
-        return EventFullDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .annotation(event.getAnnotation())
-                .description(event.getDescription())
-                .category(category)
-                .paid(event.isPaid())
-                .eventDate(event.getEventDate())
-                .createdOn(event.getCreatedOn())
-                .publishedOn(event.getPublishedOn())
-                .participantLimit(event.getParticipantLimit())
-                .requestModeration(event.isRequestModeration())
-                .state(event.getState())
-                .location(new LocationDto(event.getLocation().getLat(), event.getLocation().getLon()))
-                .initiator(initiator)
-                .confirmedRequests(confirmed)
-                .views(views)
-                .build();
-    }
-
     public static EventShortDto toShortDto(Event event, long confirmed, long views) {
         return EventShortDto.builder()
                 .id(event.getId())
@@ -85,8 +63,8 @@ public class EventMapper {
     }
 
     public EventShortDto toEventShortDtoFromEvent(Event event) {
-        CategoryDto category = new CategoryDto(event.getCategoryId(), "Category Name");
-        UserShortDto initiator = new UserShortDto(event.getInitiatorId(), "User Name");
+        CategoryDto category = new CategoryDto(event.getCategory().getId(), "Category Name");
+        UserShortDto initiator = new UserShortDto(event.getInitiator().getId(), "User Name");
         long confirmedRequests = 0L;
         long views = 0L;
         Double rating = 4.5;

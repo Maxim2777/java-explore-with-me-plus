@@ -4,10 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.main.dto.AdminUserParam;
 import ru.practicum.ewm.main.dto.NewUserRequest;
 import ru.practicum.ewm.main.dto.UserDto;
-import ru.practicum.ewm.main.dto.UserShortDto;
+import ru.practicum.ewm.main.dto.params.UserParamsAdmin;
 import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
 import ru.practicum.ewm.main.mapper.UserMapper;
@@ -37,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getUsers(AdminUserParam param) {
+    public List<UserDto> getUsers(UserParamsAdmin param) {
         List<User> users = (param.getIds() != null && !param.getIds().isEmpty())
                 ? userRepository.findAllByIdIn(param.getIds())
                 : userRepository.findAll(PageRequest.of(param.getFrom() / param.getSize(),
@@ -53,20 +52,6 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
-      userRepository.deleteById(userId);
-    }
-
-    //!!!!!!!!
-    //этот метод надо переделать, он не должен использоваться в других сервисах и не должен возвращать дто (это надо делать в маппере)
-    //!!!!!!
-    @Override
-    public UserShortDto getShortById(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        return UserShortDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .build();
+        userRepository.deleteById(userId);
     }
 }
