@@ -27,9 +27,11 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        if (uris == null && !unique) {
+        boolean urisMissing = (uris == null || uris.isEmpty());
+
+        if (urisMissing && !unique) {
             return repository.findStatsByTimestamp(start, end);
-        } else if (uris == null) {
+        } else if (urisMissing) {
             return repository.findStatsByTimestampAndUnique(start, end);
         } else if (!unique) {
             return repository.findStatsByTimestampAndUri(start, end, uris);
