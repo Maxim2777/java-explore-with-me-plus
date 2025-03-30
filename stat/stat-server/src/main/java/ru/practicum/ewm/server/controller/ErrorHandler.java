@@ -36,4 +36,16 @@ public class ErrorHandler {
         String stackTrace = sw.toString();
         return new ApiError(status, "Ошибка валидации: ", e.getMessage(), stackTrace);
     }
+
+    // ✅ Новый обработчик для IllegalArgumentException
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleIllegalArgument(final IllegalArgumentException e) {
+        log.error("Error 400 (IllegalArgument) {}", e.getMessage(), e);
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        return new ApiError(HttpStatus.BAD_REQUEST, "Неверные параметры запроса", e.getMessage(), stackTrace);
+    }
 }

@@ -27,12 +27,20 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public List<ViewStatsDto> getStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-                                       @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
-                                       @RequestParam(required = false) List<String> uris,
-                                       @RequestParam(required = false, defaultValue = "false") boolean unique) {
+    public List<ViewStatsDto> getStats(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+            @RequestParam(required = false) List<String> uris,
+            @RequestParam(required = false, defaultValue = "false") boolean unique) {
+
         log.info("StatsController - получение статистики по посещениям с {} по {} к эндпоинтам: {}, уникальность - {}",
                 start, end, uris, unique);
+
+        // ✅ Добавлена валидация дат
+        if (start.isAfter(end)) {
+            throw new IllegalArgumentException("Параметр start не может быть позже end");
+        }
+
         return service.findStats(start, end, uris, unique);
     }
 }
