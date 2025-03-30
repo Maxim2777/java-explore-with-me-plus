@@ -13,7 +13,7 @@ import java.util.List;
 public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
 
     @Query("""
-            SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(e.ip))
+            SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(e.ip) AS hits)
             FROM EndpointHit AS e
             WHERE e.timestamp
             BETWEEN :start AND :end
@@ -23,7 +23,7 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
     List<ViewStatsDto> findStatsByTimestamp(LocalDateTime start, LocalDateTime end);
 
     @Query("""
-            SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(DISTINCT e.ip))
+            SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(DISTINCT e.ip) AS hits)
             FROM EndpointHit AS e
             WHERE e.timestamp
             BETWEEN :start AND :end
@@ -32,26 +32,24 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             """)
     List<ViewStatsDto> findStatsByTimestampAndUnique(LocalDateTime start, LocalDateTime end);
 
-    // Исправленный метод: app убрали, жестко задали "main-service", группировка только по URI
     @Query("""
-            SELECT new ru.practicum.ewm.dto.ViewStatsDto('main-service', e.uri, COUNT(e.ip))
+            SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(e.ip) AS hits)
             FROM EndpointHit AS e
             WHERE e.uri IN :uris
             AND e.timestamp
             BETWEEN :start AND :end
-            GROUP BY e.uri
+            GROUP BY e.app, e.uri
             ORDER BY COUNT(e.ip) DESC
             """)
     List<ViewStatsDto> findStatsByTimestampAndUri(LocalDateTime start, LocalDateTime end, List<String> uris);
 
-    // Исправленный метод для unique=true: тоже убрали app
     @Query("""
-            SELECT new ru.practicum.ewm.dto.ViewStatsDto('main-service', e.uri, COUNT(DISTINCT e.ip))
+            SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(DISTINCT e.ip) AS hits)
             FROM EndpointHit AS e
             WHERE e.uri IN :uris
             AND e.timestamp
             BETWEEN :start AND :end
-            GROUP BY e.uri
+            GROUP BY e.app, e.uri
             ORDER BY COUNT(DISTINCT e.ip) DESC
             """)
     List<ViewStatsDto> findStatsByTimestampAndUniqueAndUri(LocalDateTime start, LocalDateTime end, List<String> uris);
