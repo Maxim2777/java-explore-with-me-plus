@@ -1,18 +1,18 @@
 package ru.practicum.ewm.server.mapper;
 
-import org.springframework.stereotype.Component;
 import ru.practicum.ewm.dto.EndpointHitDto;
+import ru.practicum.ewm.server.model.App;
 import ru.practicum.ewm.server.model.EndpointHit;
+import ru.practicum.ewm.server.model.Uri;
 
-@Component
 public class EndPointHitMapper {
 
-    public EndpointHit mapToHit(EndpointHitDto endpointHitDto) {
-        EndpointHit endpointHit = new EndpointHit();
-        endpointHit.setApp(endpointHitDto.getApp());
-        endpointHit.setUri(endpointHitDto.getUri());
-        endpointHit.setIp(endpointHitDto.getIp());
-        endpointHit.setTimestamp(endpointHitDto.getTimestamp());
-        return endpointHit;
+    public static EndpointHit mapToHit(EndpointHitDto dto, App app, Uri uri) {
+        return EndpointHit.builder()
+                .app(app)
+                .uri(uri)
+                .ip(dto.getIp())
+                .timestamp(dto.getTimestamp())
+                .build();
     }
 }

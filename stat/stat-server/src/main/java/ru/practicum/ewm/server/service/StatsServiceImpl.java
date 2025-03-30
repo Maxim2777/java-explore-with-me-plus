@@ -6,7 +6,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
 import ru.practicum.ewm.server.mapper.EndPointHitMapper;
+import ru.practicum.ewm.server.model.App;
+import ru.practicum.ewm.server.model.Uri;
+import ru.practicum.ewm.server.repository.AppRepository;
 import ru.practicum.ewm.server.repository.StatsRepository;
+import ru.practicum.ewm.server.repository.UriRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,29 +20,34 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class StatsServiceImpl implements StatsService {
 
-    private final StatsRepository repository;
-    private final EndPointHitMapper mapper;
+    private final StatsRepository statsRepository;
+    private final AppRepository appRepository;
+    private final UriRepository uriRepository;
 
     @Override
     @Transactional
     public void save(EndpointHitDto hitDto) {
-        repository.save(mapper.mapToHit(hitDto));
+        App app = appRepository.findByName(hitDto.getApp())
+                .orElseGet(() -> appRepository.save(new App(null, hitDto.getApp())));
+
+        Uri uri = uriRepository.findByUri(hitDto.getUri())
+                .orElseGet(() -> uriRepository.save(new Uri(null, hitDto.getUri())));
+
+        statsRepository.save(EndPointHitMapper.mapToHit(hitDto, app, uri));
     }
 
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        String app = "main-service"; // фильтрация только по "main-service"
-
         boolean urisMissing = (uris == null || uris.isEmpty());
 
         if (urisMissing && !unique) {
-            return repository.findStatsByAppAndTimestamp(app, start, end);
+            return statsRepository.findStatsByTimestamp(start, end);
         } else if (urisMissing) {
-            return repository.findStatsByAppAndTimestampAndUnique(app, start, end);
+            return statsRepository.findStatsByTimestampAndUnique(start, end);
         } else if (!unique) {
-            return repository.findStatsByAppAndTimestampAndUri(app, start, end, uris);
+            return statsRepository.findStatsByTimestampAndUri(start, end, uris);
         } else {
-            return repository.findStatsByAppAndTimestampAndUniqueAndUri(app, start, end, uris);
+            return statsRepository.findStatsByTimestampAndUniqueAndUri(start, end, uris);
         }
     }
 }

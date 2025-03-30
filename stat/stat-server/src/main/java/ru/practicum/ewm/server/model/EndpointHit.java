@@ -1,27 +1,32 @@
 package ru.practicum.ewm.server.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
-import jakarta.persistence.*; // Обновленный импорт!
 import java.time.LocalDateTime;
 
-@Data
 @Entity
+@Table(name = "hits")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "hits")
+@Builder
 public class EndpointHit {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String app;
+    // Связь с приложением
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "app_id", nullable = false)
+    private App app;
 
-    @Column(nullable = false)
-    private String uri;
+    // Связь с URI
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "uri_id", nullable = false)
+    private Uri uri;
 
     @Column(nullable = false)
     private String ip;
