@@ -34,7 +34,9 @@ public class StatClient {
             uriBuilder.queryParam("end", end);
         }
         if (uris != null && !uris.isEmpty()) {
-            uriBuilder.queryParam("uris", uris.toArray());
+            for (String uriItem : uris) {
+                uriBuilder.queryParam("uris", uriItem);
+            }
         }
 
         String uri = uriBuilder.build().toUriString(); // Ключевая строка
