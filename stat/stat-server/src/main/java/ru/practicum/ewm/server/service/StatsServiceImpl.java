@@ -27,16 +27,18 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+        String app = "main-service"; // фильтрация только по "main-service"
+
         boolean urisMissing = (uris == null || uris.isEmpty());
 
         if (urisMissing && !unique) {
-            return repository.findStatsByTimestamp(start, end);
+            return repository.findStatsByAppAndTimestamp(app, start, end);
         } else if (urisMissing) {
-            return repository.findStatsByTimestampAndUnique(start, end);
+            return repository.findStatsByAppAndTimestampAndUnique(app, start, end);
         } else if (!unique) {
-            return repository.findStatsByTimestampAndUri(start, end, uris);
+            return repository.findStatsByAppAndTimestampAndUri(app, start, end, uris);
         } else {
-            return repository.findStatsByTimestampAndUniqueAndUri(start, end, uris);
+            return repository.findStatsByAppAndTimestampAndUniqueAndUri(app, start, end, uris);
         }
     }
 }
