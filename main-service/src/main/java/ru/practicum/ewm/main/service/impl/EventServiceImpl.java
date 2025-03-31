@@ -2,6 +2,7 @@ package ru.practicum.ewm.main.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -48,6 +49,9 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final StatClient statClient;
+
+    // Флаг для отслеживания отправки хита на /events в рамках одного запроса
+    private final ThreadLocal<Boolean> eventListHitSent = ThreadLocal.withInitial(() -> false);
 
     // --- PRIVATE API ---
 
@@ -324,13 +328,16 @@ public class EventServiceImpl implements EventService {
                         viewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // ✅ Отправляем хит по URI /events, чтобы прошёл тест на статистику
-        statClient.sendHit(EndpointHitDto.builder()
-                .app("main-service")
-                .uri("/events")
-                .ip(request.getRemoteAddr())
-                .timestamp(LocalDateTime.now())
-                .build());
+        // ✅ Отправляем хит по URI /events только 1 раз за вызов
+        if (!eventListHitSent.get()) {
+            statClient.sendHit(EndpointHitDto.builder()
+                    .app("main-service")
+                    .uri("/events")
+                    .ip(request.getRemoteAddr())
+                    .timestamp(LocalDateTime.now())
+                    .build());
+            eventListHitSent.set(true);
+        }
 
         if (sort == null) {
             return eventShorts;
@@ -347,6 +354,11 @@ public class EventServiceImpl implements EventService {
                     .collect(Collectors.toList());
             default -> eventShorts;
         };
+    }
+
+    @PreDestroy
+    public void cleanupThreadLocal() {
+        eventListHitSent.remove();
     }
 
     @Override
