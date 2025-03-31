@@ -51,7 +51,8 @@ public class EventServiceImpl implements EventService {
     private final StatClient statClient;
 
     // Флаг для отслеживания отправки хита на /events в рамках одного запроса
-    private final ThreadLocal<Boolean> eventListHitSent = ThreadLocal.withInitial(() -> false);
+    // ThreadLocal для отслеживания уже отправленных URI в рамках текущего запроса
+    private final ThreadLocal<Set<String>> sentUris = ThreadLocal.withInitial(HashSet::new);
 
     // --- PRIVATE API ---
 
@@ -259,132 +260,136 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublicEvents(EventParamsPublic params, HttpServletRequest request) {
-        PageRequest page = PageRequest.of(params.getFrom() / params.getSize(), params.getSize());
-        BooleanBuilder where = new BooleanBuilder();
-        QEvent event = QEvent.event;
+        try {
+            PageRequest page = PageRequest.of(params.getFrom() / params.getSize(), params.getSize());
+            BooleanBuilder where = new BooleanBuilder();
+            QEvent event = QEvent.event;
 
-        String text = params.getText();
-        List<Long> categories = params.getCategories();
-        boolean onlyAvailable = params.isOnlyAvailable();
-        String sort = params.getSort();
-        LocalDateTime rangeStart = null;
-        LocalDateTime rangeEnd = null;
+            String text = params.getText();
+            List<Long> categories = params.getCategories();
+            boolean onlyAvailable = params.isOnlyAvailable();
+            String sort = params.getSort();
+            LocalDateTime rangeStart = null;
+            LocalDateTime rangeEnd = null;
 
-        if (params.getRangeStart() != null) {
-            rangeStart = LocalDateTime.parse(params.getRangeStart().replace(" ", "T"));
-        }
-
-        if (params.getRangeEnd() != null) {
-            rangeEnd = LocalDateTime.parse(params.getRangeEnd().replace(" ", "T"));
-        }
-
-        where.and(event.state.in(EventState.PUBLISHED));
-
-        if (text != null && !text.isEmpty()) {
-            where.and(event.annotation.lower().like("%" + text.toLowerCase() + "%")
-                    .or(event.description.lower().like("%" + text.toLowerCase() + "%")));
-        }
-
-        if (categories != null && !categories.isEmpty()) {
-            if (categories.size() == 1 && categories.getFirst().equals(0L)) {
-                throw new ValidationException("Неверный список идентификаторов категорий - " + categories);
+            if (params.getRangeStart() != null) {
+                rangeStart = LocalDateTime.parse(params.getRangeStart().replace(" ", "T"));
             }
-            where.and(event.category.id.in(categories));
-        }
 
-        if (params.getPaid() != null) {
-            where.and(event.paid.eq(params.getPaid()));
-        }
+            if (params.getRangeEnd() != null) {
+                rangeEnd = LocalDateTime.parse(params.getRangeEnd().replace(" ", "T"));
+            }
 
-        if (rangeStart != null) {
-            where.and(event.eventDate.after(rangeStart));
-        }
+            where.and(event.state.in(EventState.PUBLISHED));
 
-        if (rangeEnd != null) {
-            where.and(event.eventDate.before(rangeEnd));
-        }
+            if (text != null && !text.isEmpty()) {
+                where.and(event.annotation.lower().like("%" + text.toLowerCase() + "%")
+                        .or(event.description.lower().like("%" + text.toLowerCase() + "%")));
+            }
 
-        if (rangeStart == null && rangeEnd == null) {
-            where.and(event.eventDate.after(LocalDateTime.now()));
-        }
+            if (categories != null && !categories.isEmpty()) {
+                if (categories.size() == 1 && categories.getFirst().equals(0L)) {
+                    throw new ValidationException("Неверный список идентификаторов категорий - " + categories);
+                }
+                where.and(event.category.id.in(categories));
+            }
 
-        List<Event> events = eventRepository.findAll(where, page).getContent();
+            if (params.getPaid() != null) {
+                where.and(event.paid.eq(params.getPaid()));
+            }
 
-        Map<Long, Long> confirmedMap = getConfirmedRequests(events);
-        Map<Long, Long> viewsMap = getViews(events);
+            if (rangeStart != null) {
+                where.and(event.eventDate.after(rangeStart));
+            }
 
-        if (onlyAvailable) {
-            events = events
+            if (rangeEnd != null) {
+                where.and(event.eventDate.before(rangeEnd));
+            }
+
+            if (rangeStart == null && rangeEnd == null) {
+                where.and(event.eventDate.after(LocalDateTime.now()));
+            }
+
+            List<Event> events = eventRepository.findAll(where, page).getContent();
+
+            Map<Long, Long> confirmedMap = getConfirmedRequests(events);
+            Map<Long, Long> viewsMap = getViews(events);
+
+            if (onlyAvailable) {
+                events = events
+                        .stream()
+                        .filter(e -> e.getParticipantLimit() > confirmedMap.getOrDefault(e.getId(), 0L))
+                        .toList();
+            }
+
+            List<EventShortDto> eventShorts = events
                     .stream()
-                    .filter(e -> e.getParticipantLimit() > confirmedMap.getOrDefault(e.getId(), 0L))
-                    .toList();
-        }
-
-        List<EventShortDto> eventShorts = events
-                .stream()
-                .map(e -> EventMapper.toShortDto(
-                        e,
-                        confirmedMap.getOrDefault(e.getId(), 0L),
-                        viewsMap.getOrDefault(e.getId(), 0L)))
-                .collect(Collectors.toList());
-
-        // ✅ Отправляем хит по URI /events только 1 раз за вызов
-        if (!eventListHitSent.get()) {
-            statClient.sendHit(EndpointHitDto.builder()
-                    .app("main-service")
-                    .uri("/events")
-                    .ip(request.getRemoteAddr())
-                    .timestamp(LocalDateTime.now())
-                    .build());
-            eventListHitSent.set(true);
-        }
-
-        if (sort == null) {
-            return eventShorts;
-        }
-
-        return switch (sort) {
-            case "VIEWS" -> eventShorts
-                    .stream()
-                    .sorted(Comparator.comparingLong(EventShortDto::getViews).reversed())
+                    .map(e -> EventMapper.toShortDto(
+                            e,
+                            confirmedMap.getOrDefault(e.getId(), 0L),
+                            viewsMap.getOrDefault(e.getId(), 0L)))
                     .collect(Collectors.toList());
-            case "EVENT_DATE" -> eventShorts
-                    .stream()
-                    .sorted(Comparator.comparing(EventShortDto::getEventDate))
-                    .collect(Collectors.toList());
-            default -> eventShorts;
-        };
-    }
 
-    @PreDestroy
-    public void cleanupThreadLocal() {
-        eventListHitSent.remove();
+            // ✅ Отправка хита по /events только один раз
+            String uri = "/events";
+            if (sentUris.get().add(uri)) {
+                statClient.sendHit(EndpointHitDto.builder()
+                        .app("main-service")
+                        .uri(uri)
+                        .ip(request.getRemoteAddr())
+                        .timestamp(LocalDateTime.now())
+                        .build());
+            }
+
+            if (sort == null) {
+                return eventShorts;
+            }
+
+            return switch (sort) {
+                case "VIEWS" -> eventShorts
+                        .stream()
+                        .sorted(Comparator.comparingLong(EventShortDto::getViews).reversed())
+                        .collect(Collectors.toList());
+                case "EVENT_DATE" -> eventShorts
+                        .stream()
+                        .sorted(Comparator.comparing(EventShortDto::getEventDate))
+                        .collect(Collectors.toList());
+                default -> eventShorts;
+            };
+        } finally {
+            sentUris.remove(); // Очистка после запроса
+        }
     }
 
     @Override
     @Transactional
     public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
-        Event event = getEventById(eventId);
+        try {
+            Event event = getEventById(eventId);
 
-        if (event.getState() != EventState.PUBLISHED) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event is not published");
+            if (event.getState() != EventState.PUBLISHED) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event is not published");
+            }
+
+            Map<Long, Long> viewsMap = getViews(List.of(event));
+            Map<Long, Long> confirmedMap = getConfirmedRequests(List.of(event));
+
+            String uri = request.getRequestURI();
+
+            if (sentUris.get().add(uri)) {
+                statClient.sendHit(EndpointHitDto.builder()
+                        .app("main-service")
+                        .uri(uri)
+                        .ip(request.getRemoteAddr())
+                        .timestamp(LocalDateTime.now())
+                        .build());
+            }
+
+            return EventMapper.entityToFullDto(event,
+                    confirmedMap.get(event.getId()), viewsMap.get(event.getId()));
+        } finally {
+            sentUris.remove(); // Очистка после запроса
         }
-
-        Map<Long, Long> viewsMap = getViews(List.of(event));
-        Map<Long, Long> confirmedMap = getConfirmedRequests(List.of(event));
-
-        String uri = request.getRequestURI();
-        if (!uri.equals("/events")) {
-            statClient.sendHit(EndpointHitDto.builder()
-                    .app("main-service")
-                    .uri(uri)
-                    .ip(request.getRemoteAddr())
-                    .timestamp(LocalDateTime.now())
-                    .build());
-        }
-
-        return EventMapper.entityToFullDto(event,
-                confirmedMap.get(event.getId()), viewsMap.get(event.getId()));
     }
 
     // --- ADMIN API ---
