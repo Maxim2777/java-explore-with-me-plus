@@ -35,9 +35,9 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
     @Query("""
             SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(e.ip) AS hits)
             FROM EndpointHit AS e
-            WHERE e.uri IN :uris
-            AND e.timestamp
+            WHERE e.timestamp
             BETWEEN :start AND :end
+            AND e.uri IN :uris
             GROUP BY e.app, e.uri
             ORDER BY COUNT(e.ip) DESC
             """)
@@ -46,9 +46,9 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
     @Query("""
             SELECT new ru.practicum.ewm.dto.ViewStatsDto(e.app, e.uri, COUNT(DISTINCT e.ip) AS hits)
             FROM EndpointHit AS e
-            WHERE e.uri IN :uris
-            AND e.timestamp
+            WHERE e.timestamp
             BETWEEN :start AND :end
+            AND e.uri IN :uris
             GROUP BY e.app, e.uri
             ORDER BY COUNT(DISTINCT e.ip) DESC
             """)
