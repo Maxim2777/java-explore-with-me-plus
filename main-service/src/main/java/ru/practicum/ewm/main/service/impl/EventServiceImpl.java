@@ -31,6 +31,8 @@ import ru.practicum.ewm.main.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.main.repository.UserRepository;
 import ru.practicum.ewm.main.service.EventService;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -499,7 +501,12 @@ public class EventServiceImpl implements EventService {
         String start = Objects.requireNonNull(startDate).format(FORMATTER);
         String end = LocalDateTime.now().format(FORMATTER);
 
-        List<ViewStatsDto> views = statClient.getStats(start, end, uris, true);
+        // Кодируем параметры start и end
+        String encodedStart = URLEncoder.encode(start, StandardCharsets.UTF_8);
+        String encodedEnd = URLEncoder.encode(end, StandardCharsets.UTF_8);
+
+
+        List<ViewStatsDto> views = statClient.getStats(encodedStart, encodedEnd, uris, true);
 
         Map<Long, Long> map = events
                 .stream()

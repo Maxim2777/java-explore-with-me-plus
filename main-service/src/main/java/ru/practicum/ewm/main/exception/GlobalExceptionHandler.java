@@ -23,15 +23,27 @@ import java.util.NoSuchElementException;
 public class GlobalExceptionHandler {
 
     // Ошибки валидации @Valid
-    @ExceptionHandler({ValidationException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handlerValidationException(final ValidationException e) {
+    public ApiError handleValidationException(final ValidationException e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String stackTrace = sw.toString();
+        log.error("Ошибка валидации: 400 BAD_REQUEST - {}", stackTrace);
+        return new ApiError("Запрос составлен некорректно", e.getMessage(),
+                HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
         log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
-        return new ApiError("Запрос составлен некорректно", e.getMessage(),
+        return new ApiError("Некорректные данные в запросе", e.getMessage(),
                 HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
     }
 

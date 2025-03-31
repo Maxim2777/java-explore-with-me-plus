@@ -2,14 +2,16 @@ package ru.practicum.ewm.server.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
 import ru.practicum.ewm.server.service.StatsService;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Slf4j
@@ -28,19 +30,27 @@ public class StatsController {
 
     @GetMapping("/stats")
     public List<ViewStatsDto> getStats(
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+            @RequestParam String start,
+            @RequestParam String end,
             @RequestParam(required = false) List<String> uris,
             @RequestParam(required = false, defaultValue = "false") boolean unique) {
 
+        // Декодируем параметры start и end
+        String decodedStart = URLDecoder.decode(start, StandardCharsets.UTF_8);
+        String decodedEnd = URLDecoder.decode(end, StandardCharsets.UTF_8);
+
+        // Преобразуем строки в LocalDateTime
+        LocalDateTime startDate = LocalDateTime.parse(decodedStart, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime endDate = LocalDateTime.parse(decodedEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
         log.info("StatsController - получение статистики по посещениям с {} по {} к эндпоинтам: {}, уникальность - {}",
-                start, end, uris, unique);
+                startDate, endDate, uris, unique);
 
         // ✅ Добавлена валидация дат
-        if (start.isAfter(end)) {
+        if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Параметр start не может быть позже end");
         }
 
-        return service.findStats(start, end, uris, unique);
+        return service.findStats(startDate, endDate, uris, unique);
     }
 }
