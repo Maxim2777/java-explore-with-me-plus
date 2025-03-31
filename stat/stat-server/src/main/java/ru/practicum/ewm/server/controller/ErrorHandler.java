@@ -37,7 +37,7 @@ public class ErrorHandler {
         return new ApiError(status, "Ошибка валидации: ", e.getMessage(), stackTrace);
     }
 
-    // ✅ Новый обработчик для IllegalArgumentException
+    // Новый обработчик для IllegalArgumentException
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleIllegalArgument(final IllegalArgumentException e) {

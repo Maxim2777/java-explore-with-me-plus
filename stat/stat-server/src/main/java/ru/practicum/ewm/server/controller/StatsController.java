@@ -36,7 +36,7 @@ public class StatsController {
         log.info("StatsController - получение статистики по посещениям с {} по {} к эндпоинтам: {}, уникальность - {}",
                 start, end, uris, unique);
 
-        // ✅ Добавлена валидация дат
+        // Добавлена валидация дат
         if (start.isAfter(end)) {
             throw new IllegalArgumentException("Параметр start не может быть позже end");
         }
