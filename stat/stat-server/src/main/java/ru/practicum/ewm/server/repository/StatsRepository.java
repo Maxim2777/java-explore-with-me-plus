@@ -52,4 +52,42 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
         ORDER BY COUNT(DISTINCT e.ip) DESC
     """)
     List<ViewStatsDto> findStatsByTimestampAndUniqueAndUri(@Param("app") String app, LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    @Query("""
+    SELECT new ru.practicum.ewm.dto.ViewStatsDto('main-service', e.uri.uri, COUNT(e.ip))
+    FROM EndpointHit e
+    WHERE e.uri.uri IN :uris
+      AND e.timestamp BETWEEN :start AND :end
+    GROUP BY e.uri.uri
+    ORDER BY COUNT(e.ip) DESC
+""")
+    List<ViewStatsDto> findMergedHitsForUris(LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    @Query("""
+    SELECT new ru.practicum.ewm.dto.ViewStatsDto('main-service', e.uri.uri, COUNT(DISTINCT e.ip))
+    FROM EndpointHit e
+    WHERE e.uri.uri IN :uris
+      AND e.timestamp BETWEEN :start AND :end
+    GROUP BY e.uri.uri
+    ORDER BY COUNT(DISTINCT e.ip) DESC
+""")
+    List<ViewStatsDto> findMergedHitsForUrisUnique(LocalDateTime start, LocalDateTime end, List<String> uris);
+
+    @Query("""
+    SELECT new ru.practicum.ewm.dto.ViewStatsDto('main-service', e.uri.uri, COUNT(e.ip))
+    FROM EndpointHit e
+    WHERE e.timestamp BETWEEN :start AND :end
+    GROUP BY e.uri.uri
+    ORDER BY COUNT(e.ip) DESC
+""")
+    List<ViewStatsDto> findMergedHitsAll(LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+    SELECT new ru.practicum.ewm.dto.ViewStatsDto('main-service', e.uri.uri, COUNT(DISTINCT e.ip))
+    FROM EndpointHit e
+    WHERE e.timestamp BETWEEN :start AND :end
+    GROUP BY e.uri.uri
+    ORDER BY COUNT(DISTINCT e.ip) DESC
+""")
+    List<ViewStatsDto> findMergedHitsAllUnique(LocalDateTime start, LocalDateTime end);
 }
