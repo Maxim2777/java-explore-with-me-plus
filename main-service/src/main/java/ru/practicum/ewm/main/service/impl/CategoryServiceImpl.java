@@ -81,20 +81,15 @@ public class CategoryServiceImpl implements CategoryService {
         return CategoryMapper.toCategoryDtoList(categories);
     }
 
-    private Category getCategoryById(Long catId) {
-        return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
-    }
-
-
-    //!!!!!!!!
-    //ЭТОТ МЕТОД НАДО использовать только для контроллера!
-    //ОН НЕ ДОЛЖЕН КАСАТЬСЯ ДРУГОГО СЕРВИСА И ПРЕОБРАЗОВАНИЯ В ДТО ДОЛЖНЫ ПРОИСХОДИТ В МАППЕРЕ
-    //!!!!!!!!
     @Override
     public CategoryDto getById(Long catId) {
         return categoryRepository.findById(catId)
                 .map(CategoryMapper::toCategoryDto)
+                .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
+    }
+
+    private Category getCategoryById(Long catId) {
+        return categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
     }
 }
