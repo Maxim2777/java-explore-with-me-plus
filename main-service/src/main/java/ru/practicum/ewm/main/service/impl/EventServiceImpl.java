@@ -324,7 +324,7 @@ public class EventServiceImpl implements EventService {
                         viewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // ✅ Отправляем хит по URI /events, чтобы прошёл тест на статистику
+        // Отправляем хит по URI /events, чтобы прошёл тест на статистику
         statClient.sendHit(EndpointHitDto.builder()
                 .app("main-service")
                 .uri("/events")
