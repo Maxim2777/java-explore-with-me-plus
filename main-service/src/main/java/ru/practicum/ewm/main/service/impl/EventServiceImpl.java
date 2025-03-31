@@ -361,12 +361,15 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> viewsMap = getViews(List.of(event));
         Map<Long, Long> confirmedMap = getConfirmedRequests(List.of(event));
 
-        statClient.sendHit(EndpointHitDto.builder()
-                .app("main-service")
-                .uri(request.getRequestURI())
-                .ip(request.getRemoteAddr())
-                .timestamp(LocalDateTime.now())
-                .build());
+        String uri = request.getRequestURI();
+        if (!uri.equals("/events")) {
+            statClient.sendHit(EndpointHitDto.builder()
+                    .app("main-service")
+                    .uri(uri)
+                    .ip(request.getRemoteAddr())
+                    .timestamp(LocalDateTime.now())
+                    .build());
+        }
 
         return EventMapper.entityToFullDto(event,
                 confirmedMap.get(event.getId()), viewsMap.get(event.getId()));
