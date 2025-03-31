@@ -24,6 +24,8 @@ public class StatsServiceImpl implements StatsService {
     private final AppRepository appRepository;
     private final UriRepository uriRepository;
 
+    private static final String DEFAULT_APP = "main-service";
+
     @Override
     @Transactional
     public void save(EndpointHitDto hitDto) {
@@ -38,10 +40,17 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        if (unique) {
-            return statsRepository.getUniqueStats(start, end, uris);
+        String app = DEFAULT_APP;
+        boolean urisMissing = (uris == null || uris.isEmpty());
+
+        if (urisMissing && !unique) {
+            return statsRepository.findStatsByTimestamp(app, start, end);
+        } else if (urisMissing) {
+            return statsRepository.findStatsByTimestampAndUnique(app, start, end);
+        } else if (!unique) {
+            return statsRepository.findStatsByTimestampAndUri(app, start, end, uris);
         } else {
-            return statsRepository.getStats(start, end, uris);
+            return statsRepository.findStatsByTimestampAndUniqueAndUri(app, start, end, uris);
         }
     }
 }
