@@ -40,16 +40,17 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public List<ViewStatsDto> findStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+        String app = DEFAULT_APP;
         boolean urisMissing = (uris == null || uris.isEmpty());
 
-        if (urisMissing && unique) {
-            return statsRepository.findMergedHitsAllUnique(start, end);
+        if (urisMissing && !unique) {
+            return statsRepository.findStatsByTimestamp(app, start, end);
         } else if (urisMissing) {
-            return statsRepository.findMergedHitsAll(start, end);
-        } else if (unique) {
-            return statsRepository.findMergedHitsForUrisUnique(start, end, uris);
+            return statsRepository.findStatsByTimestampAndUnique(app, start, end);
+        } else if (!unique) {
+            return statsRepository.findStatsByTimestampAndUri(app, start, end, uris);
         } else {
-            return statsRepository.findMergedHitsForUris(start, end, uris);
+            return statsRepository.findStatsByTimestampAndUniqueAndUri(app, start, end, uris);
         }
     }
 }
