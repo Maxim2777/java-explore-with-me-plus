@@ -37,7 +37,6 @@ public class CompilationServiceImpl implements CompilationService {
     final CompilationRepository compilationRepository;
     final EventRepository eventRepository;
     final CompilationMapper compilationMapper;
-    final EventMapper eventMapper;
 
     @Override
     public List<CompilationDto> getCompilations(CompilationParamsPublic params) {
@@ -57,7 +56,7 @@ public class CompilationServiceImpl implements CompilationService {
         return compilationsPage.getContent().stream()
                 .map(compilation -> {
                     List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
-                            .map(eventMapper::toEventShortDtoFromEvent)
+                            .map(EventMapper::toEventShortDtoFromEvent)
                             .collect(Collectors.toList());
 
                     return compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
@@ -72,7 +71,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .orElseThrow(() -> new NotFoundException(String.format("Compilation with id=%d not found", compId)));
 
         List<EventShortDto> eventShortDtos = compilation.getEvents().stream()
-                .map(eventMapper::toEventShortDtoFromEvent)
+                .map(EventMapper::toEventShortDtoFromEvent)
                 .collect(Collectors.toList());
 
         return compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
@@ -96,7 +95,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         compilation = compilationRepository.save(compilation);
 
-        List<EventShortDto> eventShortDtos = compilation.getEvents().stream().map(eventMapper::toEventShortDtoFromEvent).toList();
+        List<EventShortDto> eventShortDtos = compilation.getEvents().stream().map(EventMapper::toEventShortDtoFromEvent).toList();
 
         return compilationMapper.toCompilationDtoFromCompilation(compilation, eventShortDtos);
     }
@@ -144,7 +143,7 @@ public class CompilationServiceImpl implements CompilationService {
         compilationRepository.save(compilation);
 
         return compilationMapper.toCompilationDtoFromCompilation(compilation, compilation.getEvents().stream()
-                .map(eventMapper::toEventShortDtoFromEvent)
+                .map(EventMapper::toEventShortDtoFromEvent)
                 .toList());
     }
 
