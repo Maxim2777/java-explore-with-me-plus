@@ -11,6 +11,6 @@ import java.util.List;
 @NoArgsConstructor
 public class UserParamsAdmin {
     private List<Long> ids;
-    private int from = 0;
-    private int size = 10;
+    private int from = PaginationDefaults.DEFAULT_FROM;
+    private int size = PaginationDefaults.DEFAULT_SIZE;
 }
