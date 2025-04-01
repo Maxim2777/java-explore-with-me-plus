@@ -26,8 +26,8 @@ public class EventParamsAdmin {
     private String rangeEnd; // дата и время не позже которых должно произойти событие
 
     @PositiveOrZero
-    private Integer from = 0; // количество событий, которые нужно пропустить // Default value : 0
+    private Integer from = PaginationDefaults.DEFAULT_FROM;  // количество событий, которые нужно пропустить // Default value : 0
 
     @Positive
-    private Integer size = 10; // количество событий в наборе // Default value : 10
+    private Integer size = PaginationDefaults.DEFAULT_SIZE;  // количество событий в наборе // Default value : 10
 }
