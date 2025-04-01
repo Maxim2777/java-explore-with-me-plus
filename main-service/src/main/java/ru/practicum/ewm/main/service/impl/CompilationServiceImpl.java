@@ -119,7 +119,8 @@ public class CompilationServiceImpl implements CompilationService {
                 .orElseThrow(() -> new NotFoundException(String.format("Compilation with id=%d not found", compId)));
         StringBuilder updatedFieldsLog = new StringBuilder();
 
-        if (updateCompilationRequest.getTitle() != null && !updateCompilationRequest.getTitle().equals(compilation.getTitle())) {
+        if (updateCompilationRequest.getTitle() != null &&
+                !updateCompilationRequest.getTitle().equals(compilation.getTitle())) {
             Optional<Compilation> existingCompilation = compilationRepository.findByTitle(updateCompilationRequest.getTitle());
             if (existingCompilation.isPresent()) {
                 throw new ConflictException("Compilation with the title '" + updateCompilationRequest.getTitle() + "' already exists.");
@@ -140,6 +141,8 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         compilationRepository.save(compilation);
+
+        log.info("Updated fields for Compilation with id = {} : {}", compId, updatedFieldsLog);
 
         return CompilationMapper.toCompilationDtoFromCompilation(compilation, compilation.getEvents().stream()
                 .map(EventMapper::toEventShortDtoFromEvent)
