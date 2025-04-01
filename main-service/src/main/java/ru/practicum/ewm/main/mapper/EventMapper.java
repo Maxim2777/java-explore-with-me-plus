@@ -65,7 +65,6 @@ public class EventMapper {
         UserShortDto initiator = new UserShortDto(event.getInitiator().getId(), "User Name");
         long confirmedRequests = 0L;
         long views = 0L;
-        Double rating = 4.5;
 
         return EventShortDto.builder()
                 .id(event.getId())
