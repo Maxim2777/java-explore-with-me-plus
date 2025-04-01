@@ -23,7 +23,7 @@ public class ErrorHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        return new ApiError(status, "Ошибка: ", e.getMessage(), stackTrace);
+        return new ApiError(status, "Error: ", e.getMessage(), stackTrace);
     }
 
     @ExceptionHandler
@@ -34,7 +34,7 @@ public class ErrorHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        return new ApiError(status, "Ошибка валидации: ", e.getMessage(), stackTrace);
+        return new ApiError(status, "Validation error: ", e.getMessage(), stackTrace);
     }
 
     @ExceptionHandler
@@ -45,6 +45,6 @@ public class ErrorHandler {
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         String stackTrace = sw.toString();
-        return new ApiError(HttpStatus.BAD_REQUEST, "Неверные параметры запроса", e.getMessage(), stackTrace);
+        return new ApiError(HttpStatus.BAD_REQUEST, "Invalid query parameters: ", e.getMessage(), stackTrace);
     }
 }

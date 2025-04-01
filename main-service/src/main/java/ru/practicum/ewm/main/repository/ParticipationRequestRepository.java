@@ -8,13 +8,10 @@ import java.util.List;
 
 public interface ParticipationRequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
-    // Получить все заявки пользователя
     List<ParticipationRequest> findAllByRequesterId(Long requesterId);
 
-    // Проверить наличие заявки от пользователя на событие
     boolean existsByRequesterIdAndEventId(Long requesterId, Long eventId);
 
-    // Получить все заявки на событие
     List<ParticipationRequest> findAllByEventId(Long eventId);
 
     long countByEventIdAndStatus(Long eventId, ParticipationRequestStatus status);

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class StatClientConfig {
 
     @Bean
-    public StatClient statClient(@Value("${stat-server-url}") String statServerUrl) { // Используем существующий ключ
+    public StatClient statClient(@Value("${stat-server-url}") String statServerUrl) {
         return new StatClient(statServerUrl);
     }
 }

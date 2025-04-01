@@ -85,11 +85,11 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getById(Long catId) {
         return categoryRepository.findById(catId)
                 .map(CategoryMapper::toCategoryDto)
-                .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
+                .orElseThrow(() -> new NotFoundException("The category with id: " + catId + " not found!"));
     }
 
     private Category getCategoryById(Long catId) {
         return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория с id: " + catId + " не найдена!"));
+                .orElseThrow(() -> new NotFoundException("The category with id: " + catId + " not found!"));
     }
 }

@@ -37,7 +37,7 @@ public class StatClient {
             uriBuilder.queryParam("uris", uris.toArray());
         }
 
-        String uri = uriBuilder.build().toUriString(); // Ключевая строка
+        String uri = uriBuilder.build().toUriString();
 
         List<ViewStatsDto> response = restClient.get()
                 .uri(uri)

@@ -15,5 +15,5 @@ public interface CategoryService {
 
     List<CategoryDto> getAll(int from, int size);
 
-    CategoryDto getById(Long catId); // ← для использования в EventServiceImpl
+    CategoryDto getById(Long catId);
 }

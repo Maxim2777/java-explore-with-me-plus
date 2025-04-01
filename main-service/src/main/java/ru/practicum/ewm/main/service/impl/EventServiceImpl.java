@@ -94,12 +94,12 @@ public class EventServiceImpl implements EventService {
         getUserById(userId);
 
         categoryRepository.findById(dto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Категория с id: " + dto.getCategory() + " не найдена!"));
+                .orElseThrow(() -> new NotFoundException("The category with id: " + dto.getCategory() + " not found!"));
 
         if (dto.getEventDate().isBefore(LocalDateTime.now()) ||
                 !dto.getEventDate().isAfter(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException("Дата и время события не могут в прошлом или" +
-                    " раньше, чем через два часа : " + dto.getEventDate());
+            throw new ValidationException("The date and time of the event cannot be in the past " +
+                    "or earlier than two hours from now: " + dto.getEventDate());
         }
 
         Event event = EventMapper.toEntity(dto, userId);
@@ -120,7 +120,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if (event.getState().equals(EventState.PUBLISHED)) {
-            throw new ConflictException("Нельзя изменить опубликованное событие!");
+            throw new ConflictException("A published event cannot be modified.");
         }
 
         if (dto.getTitle() != null) event.setTitle(dto.getTitle());
@@ -131,8 +131,8 @@ public class EventServiceImpl implements EventService {
             LocalDateTime newEventDate = LocalDateTime.parse(dto.getEventDate().replace(" ", "T"));
             if (newEventDate.isBefore(LocalDateTime.now()) ||
                     !newEventDate.isAfter(LocalDateTime.now().plusHours(2))) {
-                throw new ValidationException("Дата и время события не могут в прошлом или" +
-                        " раньше, чем через два часа : " + dto.getEventDate());
+                throw new ValidationException("The date and time of the event cannot be in the past " +
+                        "or earlier than two hours from now: " + dto.getEventDate());
             }
             event.setEventDate(newEventDate);
         }
@@ -142,7 +142,8 @@ public class EventServiceImpl implements EventService {
         if (dto.getRequestModeration() != null) event.setRequestModeration(dto.getRequestModeration());
         if (dto.getCategory() != null) {
             Category category = categoryRepository.findById(dto.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Категория с id: " + dto.getCategory() + " не найдена!"));
+                    .orElseThrow(() -> new NotFoundException("The category with id: " + dto.getCategory() +
+                            " not found!"));
             event.setCategory(category);
         }
 
@@ -191,7 +192,7 @@ public class EventServiceImpl implements EventService {
         long currentConfirmed = requestRepository.countByEventIdAndStatus(eventId, ParticipationRequestStatus.CONFIRMED);
 
         if (currentConfirmed == limit) {
-            throw new ConflictException("Достигнут лимит по заявкам на данное событие: " + event);
+            throw new ConflictException("The request limit for this event has been reached: " + event);
         }
 
         requests
@@ -199,8 +200,8 @@ public class EventServiceImpl implements EventService {
                 .filter(request -> !request.getStatus()
                         .equals(ParticipationRequestStatus.PENDING))
                 .forEach(request -> {
-                    throw new ConflictException("Статус можно изменить только у заявок, находящихся в состоянии " +
-                            "ожидания. Заявка имеет статус: " + request.getStatus());
+                    throw new ConflictException("The status can only be changed for requests that are in the pending " +
+                            "state. The request has the status: " + request.getStatus());
                 });
 
         List<ParticipationRequest> updatedRequests = new ArrayList<>();
@@ -216,7 +217,7 @@ public class EventServiceImpl implements EventService {
                         confirmedRequests.add(ParticipationRequestMapper.toDto(request));
                     }
                 } else if (currentConfirmed >= limit) {
-                    throw new ConflictException("Достигнут лимит по заявкам на данное событие: " + event);
+                    throw new ConflictException("The request limit for this event has been reached: " + event);
                 } else {
                     for (ParticipationRequest request : requests) {
                         if (limit > currentConfirmed) {
@@ -283,7 +284,7 @@ public class EventServiceImpl implements EventService {
 
         if (categories != null && !categories.isEmpty()) {
             if (categories.size() == 1 && categories.getFirst().equals(0L)) {
-                throw new ValidationException("Неверный список идентификаторов категорий - " + categories);
+                throw new ValidationException("Incorrect list of category IDs: " + categories);
             }
             where.and(event.category.id.in(categories));
         }
@@ -324,7 +325,6 @@ public class EventServiceImpl implements EventService {
                         viewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
 
-        // Отправляем хит по URI /events
         statClient.sendHit(EndpointHitDto.builder()
                 .app("main-service")
                 .uri("/events")
@@ -392,14 +392,14 @@ public class EventServiceImpl implements EventService {
 
         if (users != null && !users.isEmpty()) {
             if (users.size() == 1 && users.getFirst() == 0L) {
-                throw new ValidationException("Неверный список идентификаторов категорий - " + categories);
+                throw new ValidationException("Incorrect list of category IDs: " + categories);
             }
             where.and(event.initiator.id.in(users));
         }
 
         if (categories != null && !categories.isEmpty()) {
             if (categories.size() == 1 && categories.getFirst() == 0L) {
-                throw new ValidationException("Неверный список идентификаторов категорий - " + categories);
+                throw new ValidationException("Incorrect list of category IDs: " + categories);
             }
             where.and(event.category.id.in(categories));
         }
@@ -441,13 +441,13 @@ public class EventServiceImpl implements EventService {
         if (dto.getDescription() != null) event.setDescription(dto.getDescription());
         if (dto.getCategory() != null) {
             Category category = categoryRepository.findById(dto.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Категория с id: " + dto.getCategory() + " не найдена!"));
+                    .orElseThrow(() -> new NotFoundException("Category with id: " + dto.getCategory() + " not found!"));
             event.setCategory(category);
         }
         if (dto.getEventDate() != null) {
             LocalDateTime newEventDate = LocalDateTime.parse(dto.getEventDate().replace(" ", "T"));
             if (newEventDate.isBefore(LocalDateTime.now())) {
-                throw new ValidationException("Дата события не может в прошлом: " + dto.getEventDate());
+                throw new ValidationException("The event date cannot be in the past: " + dto.getEventDate());
             }
             event.setEventDate(newEventDate);
         }
@@ -534,11 +534,11 @@ public class EventServiceImpl implements EventService {
     private Event getEventById(Long eventId) {
         BooleanExpression byEventId = QEvent.event.id.eq(eventId);
         return eventRepository.findOne(byEventId)
-                .orElseThrow(() -> new NotFoundException("Событие с id: " + eventId + " не найдено!"));
+                .orElseThrow(() -> new NotFoundException("The event with id: " + eventId + " not found!"));
     }
 
     private void getUserById(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + userId + " не найден!"));
+                .orElseThrow(() -> new NotFoundException("The user with id: " + userId + " not found!"));
     }
 }

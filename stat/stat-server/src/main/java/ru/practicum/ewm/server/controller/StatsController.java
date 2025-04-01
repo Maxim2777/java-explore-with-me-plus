@@ -22,7 +22,7 @@ public class StatsController {
     @PostMapping("/hit")
     @ResponseStatus(HttpStatus.CREATED)
     public void saveHit(@RequestBody EndpointHitDto hitDto) {
-        log.info("StatsController - сохранение информации о запросе к эндпоинту: {}", hitDto);
+        log.info("StatsController - saving information about the request to the endpoint:  {}", hitDto);
         service.save(hitDto);
     }
 
@@ -33,12 +33,11 @@ public class StatsController {
             @RequestParam(required = false) List<String> uris,
             @RequestParam(required = false, defaultValue = "false") boolean unique) {
 
-        log.info("StatsController - получение статистики по посещениям с {} по {} к эндпоинтам: {}, уникальность - {}",
+        log.info("StatsController - retrieving visit statistics from {} to {} for endpoints: {}, uniqueness - {}",
                 start, end, uris, unique);
 
-        // валидация дат
         if (start.isAfter(end)) {
-            throw new IllegalArgumentException("Параметр start не может быть позже end");
+            throw new IllegalArgumentException("The start cannot be later then the end");
         }
 
         return service.findStats(start, end, uris, unique);

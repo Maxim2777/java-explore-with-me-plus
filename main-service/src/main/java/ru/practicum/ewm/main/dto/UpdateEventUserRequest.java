@@ -23,7 +23,6 @@ public class UpdateEventUserRequest {
 
     private LocationDto location;
 
-    // Можно также добавить кастомную проверку даты
     private String eventDate;
 
     private Boolean paid;
