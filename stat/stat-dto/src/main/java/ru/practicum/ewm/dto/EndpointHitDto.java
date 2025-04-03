@@ -17,14 +17,14 @@ public class EndpointHitDto {
     private String app;
 
     @NotEmpty
-    @Pattern(regexp = "^/.*") // Убедиться, что `uri` начинается с `/`
+    @Pattern(regexp = "^/.*")
     private String uri;
 
     @NotEmpty
     @Pattern(regexp = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!$)|$)){4}$")
     private String ip;
 
-    @PastOrPresent // Дата не может быть из будущего
+    @PastOrPresent
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 }

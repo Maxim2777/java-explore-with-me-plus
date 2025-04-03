@@ -25,22 +25,25 @@ public class StatClient {
 
     public List<ViewStatsDto> getStats(String start, String end, List<String> uris, boolean unique) {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath("/stats")
-                .queryParam("start", start)
-                .queryParam("end", end)
                 .queryParam("unique", unique);
 
-        // Если uris не пустой, добавляем в параметры запроса
+        if (start != null && !start.isBlank()) {
+            uriBuilder.queryParam("start", start);
+        }
+        if (end != null && !end.isBlank()) {
+            uriBuilder.queryParam("end", end);
+        }
         if (uris != null && !uris.isEmpty()) {
-            uriBuilder.queryParam("uris", String.join(",", uris));
+            uriBuilder.queryParam("uris", uris.toArray());
         }
 
-        String uri = uriBuilder.toUriString();
+        String uri = uriBuilder.build().toUriString();
 
         List<ViewStatsDto> response = restClient.get()
                 .uri(uri)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {});
 
-        return response != null ? response : List.of(); // Если ответ null, возвращаем пустой список
+        return response != null ? response : List.of();
     }
 }
