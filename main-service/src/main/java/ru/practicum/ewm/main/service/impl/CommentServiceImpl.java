@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.main.dto.CommentDto;
 import ru.practicum.ewm.main.dto.NewCommentDto;
+import ru.practicum.ewm.main.dto.UpdateCommentDto;
 import ru.practicum.ewm.main.dto.params.CommentSearchParamsAdmin;
 import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
@@ -124,6 +125,19 @@ public class CommentServiceImpl implements CommentService {
                 ).stream()
                 .map(CommentMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public CommentDto updateOwnComment(Long userId, Long commentId, UpdateCommentDto updateDto) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment not found"));
+
+        if (!comment.getAuthorId().equals(userId)) {
+            throw new ConflictException("User can update only their own comment");
+        }
+
+        comment.setText(updateDto.getText());
+        return CommentMapper.toDto(commentRepository.save(comment));
     }
 }
 
