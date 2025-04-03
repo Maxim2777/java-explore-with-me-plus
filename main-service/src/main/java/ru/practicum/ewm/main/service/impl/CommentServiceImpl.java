@@ -1,15 +1,17 @@
 package ru.practicum.ewm.main.service.impl;
 
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.main.dto.CommentDto;
 import ru.practicum.ewm.main.dto.NewCommentDto;
+import ru.practicum.ewm.main.dto.params.CommentSearchParamsAdmin;
 import ru.practicum.ewm.main.exception.ConflictException;
 import ru.practicum.ewm.main.exception.NotFoundException;
+import ru.practicum.ewm.main.exception.ValidationException;
 import ru.practicum.ewm.main.mapper.CommentMapper;
 import ru.practicum.ewm.main.model.Comment;
 import ru.practicum.ewm.main.model.Event;
@@ -20,6 +22,8 @@ import ru.practicum.ewm.main.repository.EventRepository;
 import ru.practicum.ewm.main.repository.UserRepository;
 import ru.practicum.ewm.main.service.CommentService;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,6 +88,42 @@ public class CommentServiceImpl implements CommentService {
             throw new NotFoundException("Comment not found");
         }
         commentRepository.deleteById(commentId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommentDto> getAllByAdmin(CommentSearchParamsAdmin params) {
+        Pageable pageable = PageRequest.of(params.getFrom() / params.getSize(), params.getSize(),
+                Sort.by("createdOn").descending());
+
+        LocalDateTime rangeStart = null;
+        LocalDateTime rangeEnd = null;
+
+        if (params.getRangeStart() != null) {
+            try {
+                rangeStart = LocalDateTime.parse(params.getRangeStart().replace(" ", "T"));
+            } catch (DateTimeParseException e) {
+                throw new ValidationException("Invalid rangeStart format, expected yyyy-MM-dd HH:mm:ss");
+            }
+        }
+
+        if (params.getRangeEnd() != null) {
+            try {
+                rangeEnd = LocalDateTime.parse(params.getRangeEnd().replace(" ", "T"));
+            } catch (DateTimeParseException e) {
+                throw new ValidationException("Invalid rangeEnd format, expected yyyy-MM-dd HH:mm:ss");
+            }
+        }
+
+        return commentRepository.findByFilters(
+                        params.getAuthorId(),
+                        params.getEventId(),
+                        rangeStart,
+                        rangeEnd,
+                        pageable
+                ).stream()
+                .map(CommentMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
 
