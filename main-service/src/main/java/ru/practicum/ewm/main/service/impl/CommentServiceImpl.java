@@ -39,26 +39,25 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto createComment(Long userId, NewCommentDto dto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = getUserById(userId);
 
-        Event event = eventRepository.findById(dto.getEventId())
-                .orElseThrow(() -> new NotFoundException("Event not found"));
+        Event event = getEventById(dto.getEventId());
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new ConflictException("Can't comment unpublished events");
         }
 
-        Comment comment = CommentMapper.toEntity(dto, userId);
+        Comment comment = CommentMapper.toEntity(dto, user, event);
         return CommentMapper.toDto(commentRepository.save(comment));
     }
 
     @Override
     public void deleteOwnComment(Long userId, Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Comment not found"));
+        User user = getUserById(userId);
 
-        if (!comment.getAuthorId().equals(userId)) {
+        Comment comment = getCommentById(commentId);
+
+        if (!comment.getAuthor().getId().equals(user.getId())) {
             throw new ConflictException("User can delete only own comments");
         }
 
@@ -68,8 +67,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByEvent(Long eventId, int from, int size) {
+        getEventById(eventId); // Проверка на существование события
+
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("createdOn").descending());
-        return commentRepository.findByEventId(eventId, pageable).stream()
+        return commentRepository.findByEvent_Id(eventId, pageable).stream()
                 .map(CommentMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -77,17 +78,17 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public List<CommentDto> getUserComments(Long userId, int from, int size) {
+        getUserById(userId); // Проверка на существование пользователя
+
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("createdOn").descending());
-        return commentRepository.findByAuthorId(userId, pageable).stream()
+        return commentRepository.findByAuthor_Id(userId, pageable).stream()
                 .map(CommentMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteByAdmin(Long commentId) {
-        if (!commentRepository.existsById(commentId)) {
-            throw new NotFoundException("Comment not found");
-        }
+        getCommentById(commentId); // проверка, что комментарий существует
         commentRepository.deleteById(commentId);
     }
 
@@ -96,6 +97,16 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDto> getAllByAdmin(CommentSearchParamsAdmin params) {
         Pageable pageable = PageRequest.of(params.getFrom() / params.getSize(), params.getSize(),
                 Sort.by("createdOn").descending());
+
+        // Проверка: существует ли автор (если указан)
+        if (params.getAuthorId() != null) {
+            getUserById(params.getAuthorId());
+        }
+
+        // Проверка: существует ли событие (если указано)
+        if (params.getEventId() != null) {
+            getEventById(params.getEventId());
+        }
 
         LocalDateTime rangeStart = null;
         LocalDateTime rangeEnd = null;
@@ -129,15 +140,30 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDto updateOwnComment(Long userId, Long commentId, UpdateCommentDto updateDto) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Comment not found"));
+        getUserById(userId); // проверка, что пользователь существует
 
-        if (!comment.getAuthorId().equals(userId)) {
+        Comment comment = getCommentById(commentId); // переиспользуем метод
+
+        if (!comment.getAuthor().getId().equals(userId)) {
             throw new ConflictException("User can update only their own comment");
         }
 
         comment.setText(updateDto.getText());
         return CommentMapper.toDto(commentRepository.save(comment));
     }
-}
 
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+    }
+
+    private Event getEventById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+    }
+
+    private Comment getCommentById(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment with id " + commentId + " not found"));
+    }
+}
