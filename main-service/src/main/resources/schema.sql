@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS participation_requests CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS comments CASCADE;
 
 -- Таблица пользователей
 CREATE TABLE IF NOT EXISTS users (
@@ -47,6 +48,15 @@ CREATE TABLE IF NOT EXISTS participation_requests (
     event_id BIGINT NOT NULL
 );
 
+-- Таблица комментариев
+CREATE TABLE IF NOT EXISTS comments (
+    id BIGSERIAL PRIMARY KEY,
+    author_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL,
+    text TEXT NOT NULL,
+    created_on TIMESTAMP NOT NULL
+);
+
 -- Таблица подборок событий
 CREATE TABLE IF NOT EXISTS compilations (
     id BIGSERIAL PRIMARY KEY,
@@ -79,3 +89,11 @@ FOREIGN KEY (category_id) REFERENCES categories(id);
 ALTER TABLE events
 ADD CONSTRAINT fk_initiator
 FOREIGN KEY (initiator_id) REFERENCES users(id);
+
+ALTER TABLE comments
+ADD CONSTRAINT fk_comment_author
+FOREIGN KEY (author_id) REFERENCES users(id);
+
+ALTER TABLE comments
+ADD CONSTRAINT fk_comment_event
+FOREIGN KEY (event_id) REFERENCES events(id);
