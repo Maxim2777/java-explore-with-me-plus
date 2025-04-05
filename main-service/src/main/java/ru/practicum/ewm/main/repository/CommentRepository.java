@@ -18,8 +18,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("SELECT c FROM Comment c " +
             "WHERE (:authorId IS NULL OR c.author.id = :authorId) " +
             "AND (:eventId IS NULL OR c.event.id = :eventId) " +
-            "AND (:rangeStart IS NULL OR c.createdOn >= :rangeStart) " +
-            "AND (:rangeEnd IS NULL OR c.createdOn <= :rangeEnd)")
+            "AND ((CAST(:rangeStart AS DATE) IS NULL ) OR c.createdOn >= :rangeStart) " +
+            "AND ((CAST(:rangeEnd AS DATE) IS NULL ) OR c.createdOn <= :rangeEnd)")
     List<Comment> findByFilters(
             @Param("authorId") Long authorId,
             @Param("eventId") Long eventId,
