@@ -44,7 +44,7 @@ public class CommentServiceImpl implements CommentService {
         Event event = getEventById(dto.getEventId());
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
-            throw new ConflictException("Can't comment unpublished events");
+            throw new ValidationException("Can't comment unpublished events");
         }
 
         Comment comment = CommentMapper.toEntity(dto, user, event);
@@ -145,7 +145,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = getCommentById(commentId); // переиспользуем метод
 
         if (!comment.getAuthor().getId().equals(userId)) {
-            throw new ConflictException("User can update only their own comment");
+            throw new ValidationException("User can update only their own comment");
         }
 
         comment.setText(updateDto.getText());
